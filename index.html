@@ -224,7 +224,6 @@
         
         // 計算餘額（基於排序後的順序）
         function calculateBalances() {
-            var balances = [];
             var balance = 0;
             // 先按日期舊到新排序，手續費排最後
             var sorted = transactions.slice().sort(function(a, b) {
@@ -238,12 +237,15 @@
                 if (!isFeeA && isFeeB) return -1;
                 return 0;
             });
+            
+            // 建立 sorted 陣列中每個元素的索引對應
             var balanceMap = {};
-            sorted.forEach(function(t) {
+            sorted.forEach(function(t, sortedIndex) {
                 if (t.type === 'income') balance += parseInt(t.amount);
                 else balance -= parseInt(t.amount);
-                // 用日期+金額當作 key（因為同一天可能有多筆記錄）
-                balanceMap[t.date + '|' + t.amount] = balance;
+                // 找到這個交易在原始 transactions 陣列中的索引
+                var originalIndex = transactions.indexOf(t);
+                balanceMap[originalIndex] = balance;
             });
             return balanceMap;
         }
@@ -306,7 +308,7 @@
                 
                 var typeLabel = t.type === 'income' ? '收入' : '支出';
                 var amountPrefix = t.type === 'income' ? '+' : '-';
-                var balance = balanceMap[t.date + '|' + t.amount];
+                var balance = balanceMap[i];
                 var balanceClass = balance >= 0 ? 'positive' : 'negative';
                 
                 html += '<tr>';
