@@ -24,8 +24,12 @@
         .form-group label { display: block; color: #555; margin-bottom: 5px; font-weight: 500; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; }
         .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #667eea; }
-        .btn { padding: 12px 30px; border: none; border-radius: 10px; font-size: 1em; cursor: pointer; font-weight: bold; }
-        .btn-primary { background: #667eea; color: white; width: 100%; }
+        .btn { padding: 8px 12px; border: none; border-radius: 6px; font-size: 0.9em; cursor: pointer; font-weight: bold; margin-right: 5px; }
+        .btn-primary { background: #667eea; color: white; width: 100%; padding: 12px 30px; }
+        .btn-edit { background: #ffa500; color: white; }
+        .btn-delete { background: #ff6b6b; color: white; }
+        .btn-save { background: #11998e; color: white; }
+        .btn-cancel { background: #999; color: white; }
         .filters { display: flex; gap: 10px; margin-bottom: 20px; }
         .filter-btn { padding: 8px 16px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer; }
         .filter-btn.active { background: #667eea; color: white; }
@@ -33,10 +37,11 @@
         th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #f8f9fa; color: #555; font-weight: 600; }
         .col-date { width: 110px; white-space: nowrap; }
-        .col-desc { width: 180px; }
-        .col-type { width: 70px; white-space: nowrap; }
-        .col-amount { width: 120px; text-align: right; white-space: nowrap; }
-        .col-balance { width: 120px; text-align: right; white-space: nowrap; }
+        .col-desc { width: 150px; }
+        .col-type { width: 60px; white-space: nowrap; }
+        .col-amount { width: 100px; text-align: right; white-space: nowrap; }
+        .col-balance { width: 100px; text-align: right; white-space: nowrap; }
+        .col-action { width: 100px; }
         .type-income { color: #11998e; font-weight: bold; }
         .type-expense { color: #f5576c; font-weight: bold; }
         .positive { color: #11998e; }
@@ -87,7 +92,8 @@
                         <label>備註</label>
                         <textarea id="note" rows="2"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-primary">新增記錄</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">新增記錄</button>
+                    <button type="button" class="btn btn-cancel" id="cancelBtn" style="display:none; width:100%; margin-top:10px;">取消編輯</button>
                 </form>
             </div>
             <div class="table-card">
@@ -106,6 +112,7 @@
                             <th class="col-amount">金額</th>
                             <th class="col-balance">餘額</th>
                             <th>備註</th>
+                            <th class="col-action">操作</th>
                         </tr>
                     </thead>
                     <tbody id="transactionTable"></tbody>
@@ -139,7 +146,7 @@
             {type: "expense", description: "聖誕餐費", amount: 84000, date: "2025-11-02", note: "28人x3000元"},
             {type: "expense", description: "手續費", amount: 30, date: "2025-11-02", note: ""},
             {type: "expense", description: "聖誕制服", amount: 24480, date: "2025-11-05", note: "36人x680元"},
-            {type: "expense", description: "手註費", amount: 15, date: "2025-11-05", note: ""},
+            {type: "expense", description: "手續費", amount: 15, date: "2025-11-05", note: ""},
             {type: "expense", description: "導生聚差額", amount: 1052, date: "2025-11-25", note: "導生聚會共花費5252元，扣掉申請活動經費4,200元，班費需支出1052元。"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-11-25", note: ""},
             {type: "expense", description: "導生聚用品", amount: 45, date: "2025-11-25", note: "導生塑膠袋"},
@@ -155,6 +162,7 @@
         ];
         
         var currentFilter = 'all';
+        var editingIndex = -1;
         
         // 計算餘額
         function calculateBalances() {
@@ -205,14 +213,17 @@
                 var amountPrefix = t.type === 'income' ? '+' : '-';
                 var balance = balances[i];
                 var balanceClass = balance >= 0 ? 'positive' : 'negative';
-                var noteDisplay = t.note ? t.note : '';
                 html += '<tr>';
                 html += '<td>' + t.date + '</td>';
                 html += '<td>' + t.description + '</td>';
                 html += '<td class="type-' + t.type + '">' + typeLabel + '</td>';
                 html += '<td class="type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
                 html += '<td class="' + balanceClass + '">' + formatMoney(balance) + '</td>';
-                html += '<td>' + noteDisplay + '</td>';
+                html += '<td>' + t.note + '</td>';
+                html += '<td>';
+                html += '<button class="btn btn-edit" onclick="editTransaction(' + i + ')">編輯</button>';
+                html += '<button class="btn btn-delete" onclick="deleteTransaction(' + i + ')">刪除</button>';
+                html += '</td>';
                 html += '</tr>';
             }
             tbody.innerHTML = html;
@@ -228,6 +239,34 @@
             renderTable();
         }
         
+        function editTransaction(index) {
+            var t = transactions[index];
+            document.getElementById('type').value = t.type;
+            document.getElementById('description').value = t.description;
+            document.getElementById('amount').value = t.amount;
+            document.getElementById('date').value = t.date;
+            document.getElementById('note').value = t.note;
+            editingIndex = index;
+            document.getElementById('submitBtn').textContent = '更新記錄';
+            document.getElementById('cancelBtn').style.display = 'block';
+        }
+        
+        function deleteTransaction(index) {
+            if (confirm('確定要刪除這筆記錄嗎？')) {
+                transactions.splice(index, 1);
+                updateDashboard();
+                renderTable();
+            }
+        }
+        
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            editingIndex = -1;
+            document.getElementById('transactionForm').reset();
+            document.getElementById('date').valueAsDate = new Date();
+            document.getElementById('submitBtn').textContent = '新增記錄';
+            document.getElementById('cancelBtn').style.display = 'none';
+        });
+        
         document.getElementById('transactionForm').addEventListener('submit', function(e) {
             e.preventDefault();
             var transaction = {
@@ -237,12 +276,20 @@
                 date: document.getElementById('date').value,
                 note: document.getElementById('note').value
             };
-            transactions.push(transaction);
+            
+            if (editingIndex >= 0) {
+                transactions[editingIndex] = transaction;
+                editingIndex = -1;
+                document.getElementById('submitBtn').textContent = '新增記錄';
+                document.getElementById('cancelBtn').style.display = 'none';
+            } else {
+                transactions.push(transaction);
+            }
+            
+            document.getElementById('transactionForm').reset();
+            document.getElementById('date').valueAsDate = new Date();
             updateDashboard();
             renderTable();
-            document.getElementById('description').value = '';
-            document.getElementById('amount').value = '';
-            document.getElementById('note').value = '';
         });
         
         // 初始化
