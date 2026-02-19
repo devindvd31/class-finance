@@ -7,7 +7,7 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; }
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1200px; margin: 0 auto; }
+        .container { max-width: 1400px; margin: 0 auto; }
         h1 { text-align: center; color: white; margin-bottom: 30px; font-size: 2.5em; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
         .dashboard { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
         .card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
@@ -17,7 +17,7 @@
         .card-title { font-size: 0.9em; opacity: 0.9; margin-bottom: 10px; }
         .card-value { font-size: 2.5em; font-weight: bold; }
         .main-content { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
-        @media (max-width: 768px) { .main-content { grid-template-columns: 1fr; } }
+        @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
         .form-card, .table-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .form-card h2, .table-card h2 { color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
         .form-group { margin-bottom: 15px; }
@@ -29,13 +29,20 @@
         .filters { display: flex; gap: 10px; margin-bottom: 20px; }
         .filter-btn { padding: 8px 16px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer; }
         .filter-btn.active { background: #667eea; color: white; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         th { background: #f8f9fa; color: #555; font-weight: 600; }
+        .col-date { width: 110px; }
+        .col-desc { width: 180px; }
+        .col-type { width: 80px; }
+        .col-amount { width: 120px; text-align: right; }
+        .col-balance { width: 120px; text-align: right; }
+        .col-note { width: auto; }
         .type-income { color: #11998e; font-weight: bold; }
         .type-expense { color: #f5576c; font-weight: bold; }
         .positive { color: #11998e; }
         .negative { color: #f5576c; }
+        .note-text { font-size: 14px; color: #666; }
     </style>
 </head>
 <body>
@@ -94,7 +101,14 @@
                 </div>
                 <table>
                     <thead>
-                        <tr><th>日期</th><th>項目</th><th>類型</th><th>金額</th><th>備註</th></tr>
+                        <tr>
+                            <th class="col-date">日期</th>
+                            <th class="col-desc">項目</th>
+                            <th class="col-type">類型</th>
+                            <th class="col-amount">金額</th>
+                            <th class="col-balance">餘額</th>
+                            <th class="col-note">備註</th>
+                        </tr>
                     </thead>
                     <tbody id="transactionTable"></tbody>
                 </table>
@@ -117,7 +131,7 @@
             {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
             {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
             {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O申請休學右下班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
             {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
             {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e聯誼會5人(代墊款=8878)=40人\n40人*餐會 1,775.6=71,024元"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
@@ -143,6 +157,21 @@
         ];
         
         var currentFilter = 'all';
+        
+        // 計算餘額
+        function calculateBalances() {
+            var balances = [];
+            var balance = 0;
+            for (var i = 0; i < transactions.length; i++) {
+                if (transactions[i].type === 'income') {
+                    balance += parseInt(transactions[i].amount);
+                } else {
+                    balance -= parseInt(transactions[i].amount);
+                }
+                balances[i] = balance;
+            }
+            return balances;
+        }
         
         // 設定今天日期
         document.getElementById('date').valueAsDate = new Date();
@@ -170,18 +199,22 @@
         function renderTable() {
             var tbody = document.getElementById('transactionTable');
             var html = '';
+            var balances = calculateBalances();
             for (var i = 0; i < transactions.length; i++) {
                 var t = transactions[i];
                 if (currentFilter !== 'all' && t.type !== currentFilter) continue;
-                var typeLabel = t.type === 'income' ? '📥 收入' : '📤 支出';
+                var typeLabel = t.type === 'income' ? '收入' : '支出';
                 var amountPrefix = t.type === 'income' ? '+' : '-';
-                var noteDisplay = t.note ? '<br><small style="color:#666">' + t.note.replace(/\n/g, '<br>') + '</small>' : '';
+                var balance = balances[i];
+                var balanceClass = balance >= 0 ? 'positive' : 'negative';
+                var noteDisplay = t.note ? '<span class="note-text">' + t.note.replace(/\n/g, '<br>') + '</span>' : '';
                 html += '<tr>';
-                html += '<td>' + t.date + '</td>';
-                html += '<td>' + t.description + '</td>';
-                html += '<td class="type-' + t.type + '">' + typeLabel + '</td>';
-                html += '<td class="type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
-                html += '<td>' + noteDisplay + '</td>';
+                html += '<td class="col-date">' + t.date + '</td>';
+                html += '<td class="col-desc">' + t.description + '</td>';
+                html += '<td class="col-type type-' + t.type + '">' + typeLabel + '</td>';
+                html += '<td class="col-amount type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
+                html += '<td class="col-balance ' + balanceClass + '">' + formatMoney(balance) + '</td>';
+                html += '<td class="col-note">' + noteDisplay + '</td>';
                 html += '</tr>';
             }
             tbody.innerHTML = html;
