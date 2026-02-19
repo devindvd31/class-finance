@@ -148,7 +148,7 @@
                                 <th class="col-type" onclick="sortTable('type')">類型</th>
                                 <th class="col-amount" onclick="sortTable('amount')">金額</th>
                                 <th class="col-balance" onclick="sortTable('balance')">餘額</th>
-                                <th class="col-note">備註</th>
+                                <th class="col-note" style="text-align:center">備註</th>
                                 <th class="col-action">操作</th>
                             </tr>
                         </thead>
@@ -289,22 +289,12 @@
                 else if (column === 'amount') { valA = parseInt(a.amount); valB = parseInt(b.amount); }
                 else if (column === 'type') { valA = a.type; valB = b.type; }
                 else if (column === 'description') { valA = a.description; valB = b.description; }
-                else if (column === 'balance') { valA = a.originalBalance; valB = b.originalBalance; }
                 if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
                 if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
                 return 0;
             });
             
-            // 計算每筆資料的餘額（基於原始順序）
-            var balances = [];
-            var balance = 0;
-            transactions.forEach(function(t) {
-                if (t.type === 'income') balance += parseInt(t.amount);
-                else balance -= parseInt(t.amount);
-                t.originalBalance = balance;
-            });
-            
-            // 用排序後的順序顯示，但餘額用原始順序計算的
+            // 用排序後的順序顯示，但餘額用原始順序計算
             renderTable(sortedTransactions);
         }
         
@@ -338,9 +328,9 @@
                 html += '<td>' + t.date + '</td>';
                 html += '<td>' + t.description + '</td>';
                 html += '<td class="type-' + t.type + '">' + typeLabel + '</td>';
-                html += '<td class="type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
-                html += '<td class="' + balanceClass + '">' + formatMoney(balance) + '</td>';
-                html += '<td style="text-align:left">' + t.note + '</td>';
+                html += '<td class="type-' + t.type + '" style="text-align:right">' + amountPrefix + formatMoney(t.amount) + '</td>';
+                html += '<td class="' + balanceClass + '" style="text-align:right">' + formatMoney(balance) + '</td>';
+                html += '<td style="text-align:center">' + t.note + '</td>';
                 html += '<td>';
                 html += '<button class="btn btn-edit" onclick="editTransaction(' + originalIndex + ')">編輯</button>';
                 html += '<button class="btn btn-delete" onclick="deleteTransaction(' + originalIndex + ')">刪除</button>';
