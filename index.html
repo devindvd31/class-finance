@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>班費管理系統</title>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; }
         body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
@@ -28,7 +30,9 @@
         .btn-primary { background: #667eea; color: white; width: 100%; padding: 12px 30px; }
         .btn-edit { background: #ffa500; color: white; }
         .btn-delete { background: #ff6b6b; color: white; }
-        .btn-report { background: #11998e; color: white; }
+        .btn-report { background: #11998e; color: white; margin-bottom: 10px; }
+        .btn-pdf { background: #e74c3c; color: white; margin-bottom: 10px; }
+        .btn-image { background: #3498db; color: white; margin-bottom: 10px; }
         .btn-cancel { background: #999; color: white; }
         .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .filter-btn { padding: 8px 16px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer; }
@@ -51,8 +55,7 @@
         .positive { color: #11998e; }
         .negative { color: #f5576c; }
         
-        /* 報表樣式 */
-        .report-month { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .report-month { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 15px; page-break-inside: avoid; }
         .report-month-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .report-month-title { font-size: 1.2em; font-weight: bold; color: #333; }
         .report-month-balance { font-size: 1.1em; font-weight: bold; }
@@ -68,6 +71,9 @@
         .tab-btn.active { background: #667eea; color: white; }
         
         .hidden { display: none; }
+        
+        /* 匯出按鈕區域 */
+        .export-buttons { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
     </style>
 </head>
 <body>
@@ -153,10 +159,11 @@
         
         <!-- 每月報表區塊 -->
         <div id="reportTab" class="hidden">
-            <div class="report-card">
+            <div class="report-card" id="reportContent">
                 <h2>📋 每月收支報表</h2>
-                <div class="filters">
-                    <button class="btn btn-report" onclick="exportReport()">📤 匯出報表</button>
+                <div class="export-buttons">
+                    <button class="btn btn-pdf" onclick="exportPDF()">📄 匯出 PDF</button>
+                    <button class="btn btn-image" onclick="exportImage()">🖼️ 匯出圖片</button>
                 </div>
                 <div id="monthlyReport"></div>
             </div>
@@ -172,16 +179,16 @@
             {type: "income", description: "班費收入", amount: 7500, date: "2025-05-30", note: "1人繳費"},
             {type: "income", description: "班費收入", amount: 7500, date: "2025-05-31", note: "1人繳費"},
             {type: "income", description: "班費收入", amount: 7500, date: "2025-06-03", note: "1人繳費"},
-            {type: "expense", description: "班服訂金", amount: 6000, date: "2025-06-13", note: "polo 253*43=10,879 T 209*44=9,196 班旗(長)400元+班旗(短)240元 Total：20,715"},
+            {type: "expense", description: "班服訂金", amount: 6000, date: "2025-06-13", note: "polo 253*43=10,879"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-06-13", note: "跨行手續費"},
-            {type: "expense", description: "班服尾款", amount: 15115, date: "2025-06-30", note: "Polo衫：253*43=10,879元 T-shirt：209*44=9,196元 班旗（長）：400元 班旗（短）：240元 運費：400 Total：21,115元 扣掉訂金6,000元，尾款15,115元。"},
+            {type: "expense", description: "班服尾款", amount: 15115, date: "2025-06-30", note: "Polo衫+T-shirt+班旗"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-06-30", note: "跨行手續費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖申請休學退班費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆申請休學退班費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文申請休學退班費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O申請休學退班費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云申請休學退班費"},
-            {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e聯誼會5人"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖休學退費"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆休學退費"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文休學退費"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O休學退費"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云休學退費"},
+            {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e 5人"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
             {type: "expense", description: "教師節活動", amount: 21024, date: "2025-09-24", note: ""},
             {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
@@ -207,7 +214,7 @@
         var currentFilter = 'all';
         var editingIndex = -1;
         var sortColumn = 'date';
-        var sortDirection = 'desc';
+        var sortDirection = 'desc'; // 預設由新到舊
         
         function showTab(tab) {
             document.getElementById('transactionsTab').classList.add('hidden');
@@ -223,7 +230,6 @@
             }
         }
         
-        // 計算餘額
         function calculateBalances() {
             var balances = [];
             var balance = 0;
@@ -373,25 +379,15 @@
             renderTable();
         });
         
-        // 每月報表
         function renderMonthlyReport() {
             var monthlyData = {};
-            var balances = calculateBalances();
             var balance = 0;
             
-            // 按月份分組
-            transactions.forEach(function(t, i) {
+            transactions.forEach(function(t) {
                 var month = t.date.substring(0, 7);
-                if (!monthlyData[month]) {
-                    monthlyData[month] = { income: 0, expense: 0, items: [] };
-                }
-                if (t.type === 'income') {
-                    monthlyData[month].income += parseInt(t.amount);
-                    balance += parseInt(t.amount);
-                } else {
-                    monthlyData[month].expense += parseInt(t.amount);
-                    balance -= parseInt(t.amount);
-                }
+                if (!monthlyData[month]) monthlyData[month] = { income: 0, expense: 0, items: [] };
+                if (t.type === 'income') { monthlyData[month].income += parseInt(t.amount); balance += parseInt(t.amount); }
+                else { monthlyData[month].expense += parseInt(t.amount); balance -= parseInt(t.amount); }
                 monthlyData[month].items.push(t);
                 monthlyData[month].endingBalance = balance;
             });
@@ -429,44 +425,45 @@
             document.getElementById('monthlyReport').innerHTML = html || '<p style="text-align:center;color:#999">尚無資料</p>';
         }
         
-        // 匯出報表
-        function exportReport() {
-            var monthlyData = {};
-            var balance = 0;
-            
-            transactions.forEach(function(t) {
-                var month = t.date.substring(0, 7);
-                if (!monthlyData[month]) monthlyData[month] = { income: 0, expense: 0, items: [] };
-                if (t.type === 'income') { monthlyData[month].income += parseInt(t.amount); balance += parseInt(t.amount); }
-                else { monthlyData[month].expense += parseInt(t.amount); balance -= parseInt(t.amount); }
-                monthlyData[month].items.push(t);
-                monthlyData[month].endingBalance = balance;
+        // 匯出 PDF
+        function exportPDF() {
+            var element = document.getElementById('reportContent');
+            html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(function(canvas) {
+                var imgData = canvas.toDataURL('image/png');
+                var { jsPDF } = window.jspdf;
+                var pdf = new jsPDF('p', 'mm', 'a4');
+                var imgWidth = 210;
+                var pageHeight = 297;
+                var imgHeight = canvas.height * imgWidth / canvas.width;
+                var heightLeft = imgHeight;
+                var position = 0;
+                
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+                
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+                
+                pdf.save('班費報表_' + new Date().toISOString().split('T')[0] + '.pdf');
             });
-            
-            var months = Object.keys(monthlyData).sort().reverse();
-            var report = '========== 班費收支報表 ==========\n\n';
-            
-            months.forEach(function(month) {
-                var data = monthlyData[month];
-                var [year, mon] = month.split('-');
-                report += '【' + year + '年 ' + mon + '月】 期末餘額：' + formatMoney(data.endingBalance) + '\n';
-                report += '收入：' + formatMoney(data.income) + ' | 支出：' + formatMoney(data.expense) + '\n';
-                report += '----------------------------------------\n';
-                data.items.forEach(function(item) {
-                    var prefix = item.type === 'income' ? '[收入]' : '[支出]';
-                    report += item.date + ' ' + prefix + ' ' + item.description + ' ' + formatMoney(item.amount) + '\n';
-                });
-                report += '\n';
-            });
-            
-            var blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
-            var link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = '班費報表_' + new Date().toISOString().split('T')[0] + '.txt';
-            link.click();
         }
         
-        // 初始化
+        // 匯出圖片
+        function exportImage() {
+            var element = document.getElementById('reportContent');
+            html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(function(canvas) {
+                var link = document.createElement('a');
+                link.download = '班費報表_' + new Date().toISOString().split('T')[0] + '.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+        
+        // 初始化 - 預設排序由新到舊
         updateDashboard();
         sortTable('date');
     </script>
