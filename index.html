@@ -29,20 +29,18 @@
         .filters { display: flex; gap: 10px; margin-bottom: 20px; }
         .filter-btn { padding: 8px 16px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer; }
         .filter-btn.active { background: #667eea; color: white; }
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #eee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        table { width: 100%; border-collapse: collapse; table-layout: auto; }
+        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #eee; }
         th { background: #f8f9fa; color: #555; font-weight: 600; }
-        .col-date { width: 110px; }
+        .col-date { width: 110px; white-space: nowrap; }
         .col-desc { width: 180px; }
-        .col-type { width: 80px; }
-        .col-amount { width: 120px; text-align: right; }
-        .col-balance { width: 120px; text-align: right; }
-        .col-note { width: auto; }
+        .col-type { width: 70px; white-space: nowrap; }
+        .col-amount { width: 120px; text-align: right; white-space: nowrap; }
+        .col-balance { width: 120px; text-align: right; white-space: nowrap; }
         .type-income { color: #11998e; font-weight: bold; }
         .type-expense { color: #f5576c; font-weight: bold; }
         .positive { color: #11998e; }
         .negative { color: #f5576c; }
-        .note-text { font-size: 14px; color: #666; }
     </style>
 </head>
 <body>
@@ -107,7 +105,7 @@
                             <th class="col-type">類型</th>
                             <th class="col-amount">金額</th>
                             <th class="col-balance">餘額</th>
-                            <th class="col-note">備註</th>
+                            <th>備註</th>
                         </tr>
                     </thead>
                     <tbody id="transactionTable"></tbody>
@@ -124,16 +122,16 @@
             {type: "income", description: "班費收入", amount: 7500, date: "2025-05-30", note: "1人繳費"},
             {type: "income", description: "班費收入", amount: 7500, date: "2025-05-31", note: "1人繳費"},
             {type: "income", description: "班費收入", amount: 7500, date: "2025-06-03", note: "1人繳費"},
-            {type: "expense", description: "班服訂金", amount: 6000, date: "2025-06-13", note: "polo 253*43=10,879\nT 209*44=9,196\n班旗(長)400元+班旗(短)240元\nTotal：20,715"},
+            {type: "expense", description: "班服訂金", amount: 6000, date: "2025-06-13", note: "polo 253*43=10,879 T 209*44=9,196 班旗(長)400元+班旗(短)240元 Total：20,715"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-06-13", note: "跨行手續費"},
-            {type: "expense", description: "班服尾款", amount: 15115, date: "2025-06-30", note: "Polo衫：253*43=10,879元\nT-shirt：209*44=9,196元\n班旗（長）：400元\n班旗（短）：240元\n運費：400\nTotal：21,115元\n扣掉訂金6,000元，尾款15,115元。"},
+            {type: "expense", description: "班服尾款", amount: 15115, date: "2025-06-30", note: "Polo衫：253*43=10,879元 T-shirt：209*44=9,196元 班旗（長）：400元 班旗（短）：240元 運費：400 Total：21,115元 扣掉訂金6,000元，尾款15,115元。"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-06-30", note: "跨行手續費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O申請休學右下班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e聯誼會5人(代墊款=8878)=40人\n40人*餐會 1,775.6=71,024元"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e聯誼會5人(代墊款=8878)=40人 40人*餐會 1,775.6=71,024元"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
             {type: "expense", description: "教師節活動", amount: 21024, date: "2025-09-24", note: ""},
             {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
@@ -141,7 +139,7 @@
             {type: "expense", description: "聖誕餐費", amount: 84000, date: "2025-11-02", note: "28人x3000元"},
             {type: "expense", description: "手續費", amount: 30, date: "2025-11-02", note: ""},
             {type: "expense", description: "聖誕制服", amount: 24480, date: "2025-11-05", note: "36人x680元"},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-11-05", note: ""},
+            {type: "expense", description: "手註費", amount: 15, date: "2025-11-05", note: ""},
             {type: "expense", description: "導生聚差額", amount: 1052, date: "2025-11-25", note: "導生聚會共花費5252元，扣掉申請活動經費4,200元，班費需支出1052元。"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-11-25", note: ""},
             {type: "expense", description: "導生聚用品", amount: 45, date: "2025-11-25", note: "導生塑膠袋"},
@@ -207,14 +205,14 @@
                 var amountPrefix = t.type === 'income' ? '+' : '-';
                 var balance = balances[i];
                 var balanceClass = balance >= 0 ? 'positive' : 'negative';
-                var noteDisplay = t.note ? '<span class="note-text">' + t.note.replace(/\n/g, '<br>') + '</span>' : '';
+                var noteDisplay = t.note ? t.note : '';
                 html += '<tr>';
-                html += '<td class="col-date">' + t.date + '</td>';
-                html += '<td class="col-desc">' + t.description + '</td>';
-                html += '<td class="col-type type-' + t.type + '">' + typeLabel + '</td>';
-                html += '<td class="col-amount type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
-                html += '<td class="col-balance ' + balanceClass + '">' + formatMoney(balance) + '</td>';
-                html += '<td class="col-note">' + noteDisplay + '</td>';
+                html += '<td>' + t.date + '</td>';
+                html += '<td>' + t.description + '</td>';
+                html += '<td class="type-' + t.type + '">' + typeLabel + '</td>';
+                html += '<td class="type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
+                html += '<td class="' + balanceClass + '">' + formatMoney(balance) + '</td>';
+                html += '<td>' + noteDisplay + '</td>';
                 html += '</tr>';
             }
             tbody.innerHTML = html;
