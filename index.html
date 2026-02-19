@@ -409,47 +409,42 @@
         });
         
         function renderMonthlyReport() {
-            var monthlyData = {};
-            var balance = 0;
+            // 按日期排序（由新到舊）
+            var sortedTransactions = transactions.slice();
+            sortedTransactions.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
             
-            transactions.forEach(function(t) {
-                var month = t.date.substring(0, 7);
-                if (!monthlyData[month]) monthlyData[month] = { income: 0, expense: 0, items: [] };
-                if (t.type === 'income') { monthlyData[month].income += parseInt(t.amount); balance += parseInt(t.amount); }
-                else { monthlyData[month].expense += parseInt(t.amount); balance -= parseInt(t.amount); }
-                monthlyData[month].items.push(t);
-                monthlyData[month].endingBalance = balance;
+            var totalIncome = 0;
+            var totalExpense = 0;
+            
+            var html = '<div style="padding:10px;">';
+            
+            sortedTransactions.forEach(function(t) {
+                if (t.type === 'income') totalIncome += parseInt(t.amount);
+                else totalExpense += parseInt(t.amount);
             });
             
-            var months = Object.keys(monthlyData).sort().reverse();
-            var html = '';
+            // 顯示總計
+            html += '<div style="background:#f0f0f0;padding:15px;border-radius:10px;margin-bottom:20px;">';
+            html += '<div style="font-size:1.1em;font-weight:bold;margin-bottom:10px;">📊 總計</div>';
+            html += '<div>📥 總收入：<span style="color:#11998e;font-weight:bold;">' + formatMoney(totalIncome) + '</span></div>';
+            html += '<div>📤 總支出：<span style="color:#f5576c;font-weight:bold;">' + formatMoney(totalExpense) + '</span></div>';
+            html += '<div>💰 餘額：<span style="font-weight:bold;">' + formatMoney(totalIncome - totalExpense) + '</span></div>';
+            html += '</div>';
             
-            months.forEach(function(month) {
-                var data = monthlyData[month];
-                var [year, mon] = month.split('-');
-                var balanceClass = data.endingBalance >= 0 ? 'positive' : 'negative';
-                
-                html += '<div class="report-month">';
-                html += '<div class="report-month-header">';
-                html += '<div class="report-month-title">' + year + '年 ' + mon + '月</div>';
-                html += '<div class="report-month-balance ' + balanceClass + '">期末餘額：' + formatMoney(data.endingBalance) + '</div>';
+            // 條列式顯示
+            sortedTransactions.forEach(function(t) {
+                var amountPrefix = t.type === 'income' ? '+' : '-';
+                var amountClass = t.type === 'income' ? 'report-income' : 'report-expense';
+                html += '<div style="padding:12px 10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">';
+                html += '<div style="flex:1;">';
+                html += '<div style="font-weight:bold;">' + t.date + ' ' + t.description + '</div>';
+                if (t.note) html += '<div style="color:#888;font-size:0.9em;margin-top:3px;">' + t.note + '</div>';
                 html += '</div>';
-                html += '<div class="report-month-details">';
-                html += '<div class="report-income">📥 收入：' + formatMoney(data.income) + '</div>';
-                html += '<div class="report-expense">📤 支出：' + formatMoney(data.expense) + '</div>';
-                html += '</div>';
-                html += '<hr style="margin:15px 0;border:none;border-top:1px solid #ddd">';
-                
-                data.items.forEach(function(item) {
-                    var amountPrefix = item.type === 'income' ? '+' : '-';
-                    var amountClass = item.type === 'income' ? 'report-income' : 'report-expense';
-                    html += '<div class="report-item">';
-                    html += '<div class="report-item-desc">' + item.date + ' ' + item.description + (item.note ? ' <span style="color:#999">(' + item.note + ')</span>' : '') + '</div>';
-                    html += '<div class="report-item-amount ' + amountClass + '">' + amountPrefix + formatMoney(item.amount) + '</div>';
-                    html += '</div>';
-                });
+                html += '<div class="' + amountClass + '" style="font-weight:bold;min-width:120px;text-align:right;">' + amountPrefix + formatMoney(t.amount) + '</div>';
                 html += '</div>';
             });
+            
+            html += '</div>';
             
             document.getElementById('monthlyReport').innerHTML = html || '<p style="text-align:center;color:#999">尚無資料</p>';
         }
