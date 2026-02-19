@@ -34,14 +34,19 @@
         .filter-btn { padding: 8px 16px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer; }
         .filter-btn.active { background: #667eea; color: white; }
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
-        th, td { padding: 12px 8px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #f8f9fa; color: #555; font-weight: 600; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #eee; }
+        th { background: #f8f9fa; color: #555; font-weight: 600; cursor: pointer; user-select: none; }
+        th:hover { background: #e9ecef; }
+        th.sorted-asc::after { content: ' ▲'; }
+        th.sorted-desc::after { content: ' ▼'; }
         .col-date { width: 110px; white-space: nowrap; }
         .col-desc { width: 150px; }
         .col-type { width: 60px; white-space: nowrap; }
         .col-amount { width: 100px; text-align: right; white-space: nowrap; }
         .col-balance { width: 100px; text-align: right; white-space: nowrap; }
         .col-action { width: 100px; }
+        .col-note { text-align: left; }
+        td[col-note] { text-align: left; }
         .type-income { color: #11998e; font-weight: bold; }
         .type-expense { color: #f5576c; font-weight: bold; }
         .positive { color: #11998e; }
@@ -106,12 +111,12 @@
                 <table>
                     <thead>
                         <tr>
-                            <th class="col-date">日期</th>
-                            <th class="col-desc">項目</th>
-                            <th class="col-type">類型</th>
-                            <th class="col-amount">金額</th>
-                            <th class="col-balance">餘額</th>
-                            <th>備註</th>
+                            <th class="col-date" onclick="sortTable('date')">日期</th>
+                            <th class="col-desc" onclick="sortTable('description')">項目</th>
+                            <th class="col-type" onclick="sortTable('type')">類型</th>
+                            <th class="col-amount" onclick="sortTable('amount')">金額</th>
+                            <th class="col-balance" onclick="sortTable('balance')">餘額</th>
+                            <th class="col-note">備註</th>
                             <th class="col-action">操作</th>
                         </tr>
                     </thead>
@@ -163,6 +168,8 @@
         
         var currentFilter = 'all';
         var editingIndex = -1;
+        var sortColumn = 'date';
+        var sortDirection = 'desc';
         
         // 計算餘額
         function calculateBalances() {
@@ -202,6 +209,52 @@
             document.getElementById('totalExpense').textContent = formatMoney(totalExpense);
         }
         
+        function sortTable(column) {
+            var headers = document.querySelectorAll('th');
+            headers.forEach(function(h) {
+                h.classList.remove('sorted-asc', 'sorted-desc');
+            });
+            
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortColumn = column;
+                sortDirection = column === 'date' ? 'desc' : 'asc';
+            }
+            
+            var header = document.querySelector('th[onclick="sortTable(\'' + column + '\')"]');
+            if (header) {
+                header.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            }
+            
+            transactions.sort(function(a, b) {
+                var valA, valB;
+                if (column === 'date') {
+                    valA = new Date(a.date);
+                    valB = new Date(b.date);
+                } else if (column === 'amount') {
+                    valA = parseInt(a.amount);
+                    valB = parseInt(b.amount);
+                } else if (column === 'type') {
+                    valA = a.type;
+                    valB = b.type;
+                } else if (column === 'description') {
+                    valA = a.description;
+                    valB = b.description;
+                } else if (column === 'balance') {
+                    var balances = calculateBalances();
+                    valA = balances[transactions.indexOf(a)];
+                    valB = balances[transactions.indexOf(b)];
+                }
+                
+                if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+                if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            renderTable();
+        }
+        
         function renderTable() {
             var tbody = document.getElementById('transactionTable');
             var html = '';
@@ -219,7 +272,7 @@
                 html += '<td class="type-' + t.type + '">' + typeLabel + '</td>';
                 html += '<td class="type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
                 html += '<td class="' + balanceClass + '">' + formatMoney(balance) + '</td>';
-                html += '<td>' + t.note + '</td>';
+                html += '<td style="text-align:left">' + t.note + '</td>';
                 html += '<td>';
                 html += '<button class="btn btn-edit" onclick="editTransaction(' + i + ')">編輯</button>';
                 html += '<button class="btn btn-delete" onclick="deleteTransaction(' + i + ')">刪除</button>';
@@ -294,7 +347,7 @@
         
         // 初始化
         updateDashboard();
-        renderTable();
+        sortTable('date');
     </script>
 </body>
 </html>
