@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Finance - 資產管理系統</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-dark: #0a0a0f; --bg-card: rgba(255,255,255,0.05); --neon-blue: #00f0ff; --neon-purple: #bf00ff; --neon-green: #00ff88; --neon-red: #ff3366; --text-primary: #ffffff; --text-secondary: #8888aa; --glass-border: rgba(255,255,255,0.1); }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Noto Sans TC', sans-serif; background: var(--bg-dark); color: var(--text-primary); min-height: 100vh; }
+        body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(0,240,255,0.03), transparent 50%), linear-gradient(225deg, rgba(191,0,255,0.03), transparent 50%); pointer-events: none; z-index: -1; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 30px 0; }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 2.5em; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; letter-spacing: 4px; }
+        .subtitle { color: var(--text-secondary); margin-top: 10px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; position: relative; }
+        .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px; background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple)); }
+        .stat-card.total { grid-column: span 2; }
+        .stat-card.total::before { background: linear-gradient(90deg, var(--neon-green), var(--neon-blue)); }
+        .stat-label { font-size: 0.85em; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 10px; }
+        .stat-value { font-family: 'Orbitron', sans-serif; font-size: 2em; font-weight: 700; }
+        .stat-value.positive { color: var(--neon-green); }
+        .stat-value.negative { color: var(--neon-red); }
+        .stat-change { font-size: 0.9em; margin-top: 10px; }
+        .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 30px; }
+        @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } .stat-card.total { grid-column: span 1; } }
+        .chart-card { background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; }
+        .chart-title { font-size: 1.1em; margin-bottom: 20px; display: flex; justify-content: space-between; }
+        .asset-section { background: var(--bg-card); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); border-radius: 20px; padding: 25px; margin-bottom: 20px; }
+        .asset-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .asset-title { font-size: 1.2em; display: flex; align-items: center; gap: 10px; }
+        .asset-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+        .asset-icon.taiwan { background: linear-gradient(135deg, #ff0000, #ff6600); }
+        .asset-icon.us { background: linear-gradient(135deg, #1a73e8, #4285f4); }
+        .asset-icon.crypto { background: linear-gradient(135deg, #ff9800, #ffeb3b); }
+        .asset-icon.forex { background: linear-gradient(135deg, #9c27b0, #e040fb); }
+        .asset-icon.gold { background: linear-gradient(135deg, #ffd700, #ffaa00); }
+        .asset-icon.cash { background: linear-gradient(135deg, #4caf50, #8bc34a); }
+        .add-btn { background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); border: none; padding: 10px 20px; border-radius: 25px; color: white; font-weight: bold; cursor: pointer; }
+        .asset-table { width: 100%; border-collapse: collapse; }
+        .asset-table th { text-align: left; padding: 12px; color: var(--text-secondary); font-weight: 500; border-bottom: 1px solid var(--glass-border); font-size: 0.85em; }
+        .asset-table td { padding: 15px 12px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .asset-table tr:hover { background: rgba(255,255,255,0.03); }
+        .asset-name { font-weight: 500; }
+        .asset-code { font-size: 0.8em; color: var(--text-secondary); }
+        .price-up { color: var(--neon-green); }
+        .price-down { color: var(--neon-red); }
+        .profit-positive { color: var(--neon-green); }
+        .profit-negative { color: var(--neon-red); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 1000; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: #151520; border: 1px solid var(--glass-border); border-radius: 20px; padding: 30px; width: 90%; max-width: 400px; }
+        .modal h2 { margin-bottom: 20px; font-family: 'Orbitron', sans-serif; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: var(--text-secondary); font-size: 0.9em; }
+        .form-group input { width: 100%; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); border-radius: 10px; color: white; font-size: 1em; }
+        .form-group input:focus { outline: none; border-color: var(--neon-blue); }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        .btn-save { background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); color: white; }
+        .btn-cancel { background: rgba(255,255,255,0.1); color: white; }
+        .tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab-btn { padding: 12px 24px; background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 25px; color: var(--text-secondary); cursor: pointer; }
+        .tab-btn.active { background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); color: white; border: none; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .refresh-btn { background: transparent; border: 1px solid var(--neon-blue); color: var(--neon-blue); padding: 8px 16px; border-radius: 20px; cursor: pointer; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 2px solid var(--glass-border); border-top-color: var(--neon-blue); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header><h1>CYBER FINANCE</h1><p class="subtitle">🚀 資產管理系統</p></header>
+        <div class="stats-grid">
+            <div class="stat-card total"><div class="stat-label">💰 總資產</div><div class="stat-value" id="totalAsset">NT$ 0</div><div class="stat-change" id="totalChange"><span class="loading"></span></div></div>
+            <div class="stat-card"><div class="stat-label">📈 總損益</div><div class="stat-value" id="totalProfit">NT$ 0</div><div class="stat-change" id="profitPercent">--</div></div>
+            <div class="stat-card"><div class="stat-label">⬆️ 總市值</div><div class="stat-value" id="totalValue">NT$ 0</div></div>
+        </div>
+        <div class="charts-grid">
+            <div class="chart-card"><div class="chart-title">📊 資產趨勢<button class="refresh-btn" onclick="refreshPrices()">🔄 更新報價</button></div><canvas id="trendChart" height="100"></canvas></div>
+            <div class="chart-card"><div class="chart-title">🎯 資產分布</div><canvas id="pieChart"></canvas></div>
+        </div>
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="showTab('taiwan')">📈 台股</button>
+            <button class="tab-btn" onclick="showTab('us')">🇺🇸 美股</button>
+            <button class="tab-btn" onclick="showTab('crypto')">🪙 加密</button>
+            <button class="tab-btn" onclick="showTab('forex')">💱 外幣</button>
+            <button class="tab-btn" onclick="showTab('gold')">🥇 黃金</button>
+            <button class="tab-btn" onclick="showTab('cash')">💵 現金</button>
+        </div>
+        <div class="tab-content active" id="taiwan"><div class="asset-section"><div class="asset-header"><div class="asset-title"><div class="asset-icon taiwan">📈</div>台灣股票</div><button class="add-btn" onclick="openModal('taiwan')">+ 新增</button></div><table class="asset-table"><thead><tr><th>名稱</th><th>數量</th><th>成本</th><th>現價</th><th>損益</th></tr></thead><tbody id="taiwanTable"></tbody></table></div></div>
+        <div class="tab-content" id="us"><div class="asset-section"><div class="asset-header"><div class="asset-icon us">🇺🇸</div>美國股票</div><button class="add-btn" onclick="openModal('us')">+ 新增</button></div><table class="asset-table"><thead><tr><th>名稱</th><th>數量</th><th>成本</th><th>現價</th><th>損益</th></tr></thead><tbody id="usTable"></tbody></table></div></div>
+        <div class="tab-content" id="crypto"><div class="asset-section"><div class="asset-header"><div class="asset-title"><div class="asset-icon crypto">🪙</div>加密貨幣</div><button class="add-btn" onclick="openModal('crypto')">+ 新增</button></div><table class="asset-table"><thead><tr><th>名稱</th><th>數量</th><th>成本</th><th>現價</th><th>損益</th></tr></thead><tbody id="cryptoTable"></tbody></table></div></div>
+        <div class="tab-content" id="forex"><div class="asset-section"><div class="asset-header"><div class="asset-title"><div class="asset-icon forex">💱</div>外幣</div><button class="add-btn" onclick="openModal('forex')">+ 新增</button></div><table class="asset-table"><thead><tr><th>幣別</th><th>數量</th><th>成本</th><th>現價</th><th>損益</th></tr></thead><tbody id="forexTable"></tbody></table></div></div>
+        <div class="tab-content" id="gold"><div class="asset-section"><div class="asset-header"><div class="asset-title"><div class="asset-icon gold">🥇</div>黃金存摺</div><button class="add-btn" onclick="openModal('gold')">+ 新增</button></div><table class="asset-table"><thead><tr><th>名稱</th><th>數量(oz)</th><th>成本</th><th>現價</th><th>損益</th></tr></thead><tbody id="goldTable"></tbody></table></div></div>
+        <div class="tab-content" id="cash"><div class="asset-section"><div class="asset-header"><div class="asset-title"><div class="asset-icon cash">💵</div>現金</div><button class="add-btn" onclick="openModal('cash')">+ 新增</button></div><table class="asset-table"><thead><tr><th>幣別</th><th>金額</th><th>備註</th><th></th></tr></thead><tbody id="cashTable"></tbody></table></div></div>
+    </div>
+    <div class="modal" id="addModal"><div class="modal-content"><h2 id="modalTitle">新增資產</h2><form id="assetForm"><div class="form-group"><label id="codeLabel">代碼</label><input type="text" id="assetCode" required placeholder="如：2330、AAPL、BTC"></div><div class="form-group"><label>數量</label><input type="number" id="assetQty" required step="any" placeholder="如：10"></div><div class="form-group"><label>成本單價</label><input type="number" id="assetCost" required step="any" placeholder="如：500"></div><div class="form-group"><label>備註</label><input type="text" id="assetNote" placeholder="選填"></div><div class="modal-buttons"><button type="button" class="btn-cancel" onclick="closeModal()">取消</button><button type="submit" class="btn-save">儲存</button></div></form></div></div>
+    <script>
+        let assets = { taiwan: [], us: [], crypto: [], forex: [], gold: [], cash: [] };
+        let prices = { taiwan: {}, us: {}, crypto: {}, forex: {}, gold: {} };
+        let currentType = '';
+        let trendChart, pieChart;
+
+        function loadData() { const s = localStorage.getItem('cyberFinance'); if (s) assets = JSON.parse(s); }
+        function saveData() { localStorage.setItem('cyberFinance', JSON.stringify(assets)); }
+
+        async function refreshPrices() {
+            document.getElementById('totalChange').innerHTML = '<span class="loading"></span>';
+            await Promise.all([fetchTaiwanStocks(), fetchUSStocks(), fetchCryptoPrices(), fetchForexPrices(), fetchGoldPrice()]);
+            renderAll(); updateCharts();
+            document.getElementById('totalChange').textContent = '報價更新完成';
+        }
+
+        async function fetchTaiwanStocks() {
+            const codes = assets.taiwan.map(a => a.code + '.tw');
+            if (codes.length === 0) return;
+            try { const url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' + codes.join(',');
+                const res = await fetch(url); const data = await res.json();
+                data.quoteResponse.result.forEach(s => { prices.taiwan[s.symbol.replace('.tw','')] = { price: s.regularMarketPrice||0, change: s.regularMarketChangePercent||0 }; });
+            } catch(e) { console.log('err',e); }
+        }
+        async function fetchUSStocks() {
+            const codes = assets.us.map(a => a.code);
+            if (codes.length === 0) return;
+            try { const url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols=' + codes.join(',');
+                const res = await fetch(url); const data = await res.json();
+                data.quoteResponse.result.forEach(s => { prices.us[s.symbol] = { price: s.regularMarketPrice||0, change: s.regularMarketChangePercent||0 }; });
+            } catch(e) {}
+        }
+        async function fetchCryptoPrices() {
+            const m = { 'BTC':'bitcoin','ETH':'ethereum','SOL':'solana' };
+            const ids = assets.crypto.map(a => m[a.code.toUpperCase()]).filter(Boolean);
+            if (ids.length === 0) return;
+            try { const url = 'https://api.coingecko.com/api/v3/simple/price?ids='+ids.join(',')+'&vs_currencies=twd';
+                const data = await fetch(url).then(r=>r.json());
+                Object.keys(m).forEach(sym => { if(data[m[sym]]) prices.crypto[sym] = { price: data[m[sym]].twd||0 }; });
+            } catch(e) {}
+        }
+        async function fetchForexPrices() {
+            const m = { 'USD':'USDTWD=X','JPY':'JPYTWD=X' };
+            const ys = assets.forex.map(a => m[a.code.toUpperCase()]).filter(Boolean);
+            if (ys.length === 0) return;
+            try { const url = 'https://query1.finance.yahoo.com/v7/finance/quote?symbols='+ys.join(',');
+                const res = await fetch(url); const data = await res.json();
+                data.quoteResponse.result.forEach(fx => { const sym = Object.keys(m).find(k=>m[k]===fx.symbol); if(sym) prices.forex[sym] = { price: fx.regularMarketPrice||0 }; });
+            } catch(e) {}
+        }
+        async function fetchGoldPrice() {
+            if (assets.gold.length === 0) return;
+            prices.gold['GOLD'] = { price: 2300 };
+        }
+
+        function showTab(id) { document.querySelectorAll('.tab-content').forEach(t=>t.classList.remove('active')); document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active')); document.getElementById(id).classList.add('active'); event.target.classList.add('active'); }
+        function openModal(type) { currentType = type; document.getElementById('modalTitle').textContent = '新增' + {taiwan:'台股',us:'美股',crypto:'加密',forex:'外幣',gold:'黃金',cash:'現金'}[type]; document.getElementById('addModal').classList.add('active'); }
+        function closeModal() { document.getElementById('addModal').classList.remove('active'); }
+        
+        document.getElementById('assetForm').onsubmit = function(e) {
+            e.preventDefault();
+            assets[currentType].push({ code: document.getElementById('assetCode').value, qty: parseFloat(document.getElementById('assetQty').value), cost: parseFloat(document.getElementById('assetCost').value), note: document.getElementById('assetNote').value });
+            saveData(); closeModal(); this.reset(); refreshPrices();
+        };
+
+        function fmt(a) { return 'NT$ ' + Math.round(a).toLocaleString(); }
+        
+        function renderAll() {
+            let html = '';
+            assets.taiwan.forEach(a => { const p = prices.taiwan[a.code]||{price:0}, cost = a.qty*a.cost, val = a.qty*p.price, profit = val-cost; html += '<tr><td><div class="asset-name">'+a.code+'</div><div class="asset-code">'+(a.note||'')+'</div></td><td>'+a.qty+'</td><td>'+fmt(cost)+'</td><td class="'+(p.change>=0?'price-up':'price-down')+'">'+fmt(val)+'</td><td class="'+(profit>=0?'profit-positive':'profit-negative')+'">'+(profit>=0?'+':'')+fmt(profit)+'</td></tr>'; });
+            document.getElementById('taiwanTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#666">尚無資料</td></tr>';
+            
+            html = ''; assets.us.forEach(a => { const p = prices.us[a.code]||{price:0}, cost = a.qty*a.cost, val = a.qty*p.price, profit = val-cost; html += '<tr><td><div class="asset-name">'+a.code+'</div><div class="asset-code">'+(a.note||'')+'</div></td><td>'+a.qty+'</td><td>'+fmt(cost)+'</td><td class="'+(p.change>=0?'price-up':'price-down')+'">'+fmt(val)+'</td><td class="'+(profit>=0?'profit-positive':'profit-negative')+'">'+(profit>=0?'+':'')+fmt(profit)+'</td></tr>'; });
+            document.getElementById('usTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#666">尚無資料</td></tr>';
+            
+            html = ''; assets.crypto.forEach(a => { const p = prices.crypto[a.code.toUpperCase()]||{price:0}, cost = a.qty*a.cost, val = a.qty*p.price, profit = val-cost; html += '<tr><td><div class="asset-name">'+a.code+'</div><div class="asset-code">'+(a.note||'')+'</div></td><td>'+a.qty+'</td><td>'+fmt(cost)+'</td><td>'+fmt(val)+'</td><td class="'+(profit>=0?'profit-positive':'profit-negative')+'">'+(profit>=0?'+':'')+fmt(profit)+'</td></tr>'; });
+            document.getElementById('cryptoTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#666">尚無資料</td></tr>';
+            
+            html = ''; assets.forex.forEach(a => { const p = prices.forex[a.code.toUpperCase()]||{price:0}, cost = a.qty*a.cost, val = a.qty*p.price, profit = val-cost; html += '<tr><td><div class="asset-name">'+a.code+'</div><div class="asset-code">'+(a.note||'')+'</div></td><td>'+a.qty+'</td><td>'+fmt(cost)+'</td><td>'+fmt(val)+'</td><td class="'+(profit>=0?'profit-positive':'profit-negative')+'">'+(profit>=0?'+':'')+fmt(profit)+'</td></tr>'; });
+            document.getElementById('forexTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#666">尚無資料</td></tr>';
+            
+            html = ''; assets.gold.forEach(a => { const p = prices.gold['GOLD']?.price||0, cost = a.qty*a.cost, val = a.qty*p, profit = val-cost; html += '<tr><td><div class="asset-name">黃金存摺</div><div class="asset-code">'+(a.note||'')+'</div></td><td>'+a.qty+'</td><td>'+fmt(cost)+'</td><td>'+fmt(val)+'</td><td class="'+(profit>=0?'profit-positive':'profit-negative')+'">'+(profit>=0?'+':'')+fmt(profit)+'</td></tr>'; });
+            document.getElementById('goldTable').innerHTML = html || '<tr><td colspan="5" style="text-align:center;color:#666">尚無資料</td></tr>';
+            
+            html = ''; assets.cash.forEach((a,i) => { html += '<tr><td><div class="asset-name">'+a.code+'</div></td><td>'+fmt(a.qty)+'</td><td>'+(a.note||'-')+'</td><td><button onclick="deleteAsset(\'cash\','+i+')" style="background:#ff3366;border:none;padding:5px 10px;border-radius:5px;color:white;cursor:pointer">刪</button></td></tr>'; });
+            document.getElementById('cashTable').innerHTML = html || '<tr><td colspan="4" style="text-align:center;color:#666">尚無資料</td></tr>';
+            
+            updateStats();
+        }
+        
+        function deleteAsset(type, idx) { assets[type].splice(idx,1); saveData(); renderAll(); }
+
+        function updateStats() {
+            let totalCost=0,totalValue=0;
+            assets.taiwan.forEach(a=>{const p=prices.taiwan[a.code]?.price||a.cost;totalCost+=a.qty*a.cost;totalValue+=a.qty*p;});
+            assets.us.forEach(a=>{const p=prices.us[a.code]?.price||a.cost;totalCost+=a.qty*a.cost;totalValue+=a.qty*p;});
+            assets.crypto.forEach(a=>{const p=prices.crypto[a.code.toUpperCase()]?.price||a.cost;totalCost+=a.qty*a.cost;totalValue+=a.qty*p;});
+            assets.forex.forEach(a=>{const p=prices.forex[a.code.toUpperCase()]?.price||a.cost;totalCost+=a.qty*a.cost;totalValue+=a.qty*p;});
+            assets.gold.forEach(a=>{const p=prices.gold['GOLD']?.price||a.cost;totalCost+=a.qty*a.cost;totalValue+=a.qty*p;});
+            assets.cash.forEach(a=>{totalCost+=a.qty;totalValue+=a.qty;});
+            const profit = totalValue - totalCost, pct = totalCost>0?profit/totalCost*100:0;
+            document.getElementById('totalAsset').textContent = fmt(totalValue);
+            document.getElementById('totalProfit').textContent = fmt(profit);
+            document.getElementById('totalProfit').className = 'stat-value ' + (profit>=0?'positive':'negative');
+            document.getElementById('profitPercent').textContent = (profit>=0?'+':'') + pct.toFixed(1) + '%';
+            document.getElementById('profitPercent').className = 'stat-change ' + (profit>=0?'up':'down');
+            document.getElementById('totalValue').textContent = fmt(totalValue);
+        }
+
+        function updateCharts() {
+            const ctx1 = document.getElementById('trendChart').getContext('2d');
+            const ctx2 = document.getElementById('pieChart').getContext('2d');
+            if(trendChart) trendChart.destroy(); if(pieChart) pieChart.destroy();
+            trendChart = new Chart(ctx1, { type: 'line', data: { labels: ['1月','2月','3月','4月','5月','6月'], datasets: [{ label: '總資產', data:[100000,120000,115000,130000,125000,140000], borderColor:'#00f0ff',backgroundColor:'rgba(0,240,255,0.1)',fill:true,tension:0.4 }] }, options: { plugins:{legend:{labels:{color:'#fff'}}}, scales:{x:{ticks:{color:'#888'},grid:{color:'rgba(255,255,255,0.1)'}},y:{ticks:{color:'#888'},grid:{color:'rgba(255,255,255,0.1)'}}} } });
+            const dist = { '台股':0,'美股':0,'加密':0,'外幣':0,'黃金':0,'現金':0 };
+            assets.taiwan.forEach(a=>dist['台股']+=a.qty*(prices.taiwan[a.code]?.price||a.cost));
+            assets.us.forEach(a=>dist['美股']+=a.qty*(prices.us[a.code]?.price||a.cost));
+            assets.crypto.forEach(a=>dist['加密']+=a.qty*(prices.crypto[a.code.toUpperCase()]?.price||a.cost));
+            assets.forex.forEach(a=>dist['外幣']+=a.qty*(prices.forex[a.code.toUpperCase()]?.price||a.cost));
+            assets.gold.forEach(a=>dist['黃金']+=a.qty*(prices.gold['GOLD']?.price||a.cost));
+            assets.cash.forEach(a=>dist['現金']+=a.qty);
+            pieChart = new Chart(ctx2, { type: 'doughnut', data: { labels: Object.keys(dist), datasets: [{ data: Object.values(dist), backgroundColor:['#ff6600','#4285f4','#ff9800','#9c27b0','#ffd700','#4caf50'], borderColor:'#0a0a0f',borderWidth:3 }] }, options: { plugins:{legend:{labels:{color:'#fff',padding:20}} } } });
+        }
+
+        loadData();
+        setTimeout(refreshPrices, 500);
+    </script>
+</body>
+</html>
