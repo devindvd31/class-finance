@@ -1,6 +1,6 @@
 {
-  "name": "班費管理系統",
-  "short_name": "班費管理",
+  "name": "114e班費",
+  "short_name": "114e班費",
   "description": "114e 班費管理系統",
   "start_url": "/class-finance/",
   "display": "standalone",
