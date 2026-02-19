@@ -22,8 +22,8 @@
         .form-card h2, .table-card h2 { color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; color: #555; margin-bottom: 5px; font-weight: 500; }
-        .form-group input, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; }
-        .form-group input:focus { outline: none; border-color: #667eea; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; }
+        .form-group input:focus, .form-group textarea:focus { outline: none; border-color: #667eea; }
         .btn { padding: 12px 30px; border: none; border-radius: 10px; font-size: 1em; cursor: pointer; font-weight: bold; }
         .btn-primary { background: #667eea; color: white; width: 100%; }
         .filters { display: flex; gap: 10px; margin-bottom: 20px; }
@@ -78,6 +78,10 @@
                         <label>日期</label>
                         <input type="date" id="date" required>
                     </div>
+                    <div class="form-group">
+                        <label>備註</label>
+                        <textarea id="note" rows="2"></textarea>
+                    </div>
                     <button type="submit" class="btn btn-primary">新增記錄</button>
                 </form>
             </div>
@@ -90,7 +94,7 @@
                 </div>
                 <table>
                     <thead>
-                        <tr><th>日期</th><th>項目</th><th>類型</th><th>金額</th></tr>
+                        <tr><th>日期</th><th>項目</th><th>類型</th><th>金額</th><th>備註</th></tr>
                     </thead>
                     <tbody id="transactionTable"></tbody>
                 </table>
@@ -98,7 +102,7 @@
         </div>
     </div>
     <script>
-        // 班費資料
+        // 班費資料（含備註）
         var transactions = [
             {type: "income", description: "班費收入", amount: 127500, date: "2025-05-23", note: "17人繳費"},
             {type: "income", description: "班費收入", amount: 127500, date: "2025-05-24", note: "17人繳費"},
@@ -106,28 +110,28 @@
             {type: "income", description: "班費收入", amount: 7500, date: "2025-05-30", note: "1人繳費"},
             {type: "income", description: "班費收入", amount: 7500, date: "2025-05-31", note: "1人繳費"},
             {type: "income", description: "班費收入", amount: 7500, date: "2025-06-03", note: "1人繳費"},
-            {type: "expense", description: "班服訂金", amount: 6000, date: "2025-06-13", note: ""},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-06-13", note: ""},
-            {type: "expense", description: "班服尾款", amount: 15115, date: "2025-06-30", note: ""},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-06-30", note: ""},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: ""},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: ""},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: ""},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: ""},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: ""},
-            {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: ""},
+            {type: "expense", description: "班服訂金", amount: 6000, date: "2025-06-13", note: "polo 253*43=10,879\nT 209*44=9,196\n班旗(長)400元+班旗(短)240元\nTotal：20,715"},
+            {type: "expense", description: "手續費", amount: 15, date: "2025-06-13", note: "跨行手續費"},
+            {type: "expense", description: "班服尾款", amount: 15115, date: "2025-06-30", note: "Polo衫：253*43=10,879元\nT-shirt：209*44=9,196元\n班旗（長）：400元\n班旗（短）：240元\n運費：400\nTotal：21,115元\n扣掉訂金6,000元，尾款15,115元。"},
+            {type: "expense", description: "手續費", amount: 15, date: "2025-06-30", note: "跨行手續費"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
+            {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e聯誼會5人(代墊款=8878)=40人\n40人*餐會 1,775.6=71,024元"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
             {type: "expense", description: "教師節活動", amount: 21024, date: "2025-09-24", note: ""},
             {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
-            {type: "income", description: "小e聯誼會5人代墊款", amount: 8880, date: "2025-10-07", note: ""},
-            {type: "expense", description: "聖誕餐費", amount: 84000, date: "2025-11-02", note: ""},
+            {type: "income", description: "小e聯誼會5人代墊款", amount: 8880, date: "2025-10-07", note: "小e聯誼會5人(代墊款歸回)"},
+            {type: "expense", description: "聖誕餐費", amount: 84000, date: "2025-11-02", note: "28人x3000元"},
             {type: "expense", description: "手續費", amount: 30, date: "2025-11-02", note: ""},
-            {type: "expense", description: "聖誕制服", amount: 24480, date: "2025-11-05", note: ""},
+            {type: "expense", description: "聖誕制服", amount: 24480, date: "2025-11-05", note: "36人x680元"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-11-05", note: ""},
-            {type: "expense", description: "導生聚差額", amount: 1052, date: "2025-11-25", note: ""},
+            {type: "expense", description: "導生聚差額", amount: 1052, date: "2025-11-25", note: "導生聚會共花費5252元，扣掉申請活動經費4,200元，班費需支出1052元。"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-11-25", note: ""},
-            {type: "expense", description: "導生聚用品", amount: 45, date: "2025-11-25", note: ""},
-            {type: "expense", description: "聖誕制服重買", amount: 4500, date: "2025-12-09", note: ""},
+            {type: "expense", description: "導生聚用品", amount: 45, date: "2025-11-25", note: "導生塑膠袋"},
+            {type: "expense", description: "聖誕制服重買", amount: 4500, date: "2025-12-09", note: "9人x500元"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-12-09", note: ""},
             {type: "expense", description: "利息", amount: 748, date: "2025-12-21", note: ""},
             {type: "expense", description: "尾牙班聚訂金", amount: 18500, date: "2025-12-25", note: ""},
@@ -171,11 +175,13 @@
                 if (currentFilter !== 'all' && t.type !== currentFilter) continue;
                 var typeLabel = t.type === 'income' ? '📥 收入' : '📤 支出';
                 var amountPrefix = t.type === 'income' ? '+' : '-';
+                var noteDisplay = t.note ? '<br><small style="color:#666">' + t.note.replace(/\n/g, '<br>') + '</small>' : '';
                 html += '<tr>';
                 html += '<td>' + t.date + '</td>';
                 html += '<td>' + t.description + '</td>';
                 html += '<td class="type-' + t.type + '">' + typeLabel + '</td>';
                 html += '<td class="type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
+                html += '<td>' + noteDisplay + '</td>';
                 html += '</tr>';
             }
             tbody.innerHTML = html;
@@ -198,13 +204,14 @@
                 description: document.getElementById('description').value,
                 amount: parseInt(document.getElementById('amount').value),
                 date: document.getElementById('date').value,
-                note: ''
+                note: document.getElementById('note').value
             };
             transactions.push(transaction);
             updateDashboard();
             renderTable();
             document.getElementById('description').value = '';
             document.getElementById('amount').value = '';
+            document.getElementById('note').value = '';
         });
         
         // 初始化
