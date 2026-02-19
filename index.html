@@ -165,48 +165,49 @@
     <script>
         // 班費資料
         var transactions = [
-            {type: "income", description: "班費收入", amount: 127500, date: "2025-05-23", note: "17人繳費"},
-            {type: "income", description: "班費收入", amount: 127500, date: "2025-05-24", note: "17人繳費"},
-            {type: "income", description: "班費收入", amount: 30000, date: "2025-05-25", note: "4人繳費"},
-            {type: "income", description: "班費收入", amount: 7500, date: "2025-05-30", note: "1人繳費"},
-            {type: "income", description: "班費收入", amount: 7500, date: "2025-05-31", note: "1人繳費"},
-            {type: "income", description: "班費收入", amount: 7500, date: "2025-06-03", note: "1人繳費"},
-            {type: "expense", description: "班服訂金", amount: 6000, date: "2025-06-13", note: "polo 253*43=10,879"},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-06-13", note: "跨行手續費"},
-            {type: "expense", description: "班服尾款", amount: 15115, date: "2025-06-30", note: "Polo衫+T-shirt+班旗"},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-06-30", note: "跨行手續費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖休學退費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆休學退費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文休學退費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O休學退費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云休學退費"},
-            {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e 5人"},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
-            {type: "expense", description: "教師節活動", amount: 21024, date: "2025-09-24", note: ""},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
-            {type: "income", description: "小e聯誼會5人代墊款", amount: 8880, date: "2025-10-07", note: ""},
-            {type: "expense", description: "聖誕餐費", amount: 84000, date: "2025-11-02", note: "28人x3000元"},
-            {type: "expense", description: "手續費", amount: 30, date: "2025-11-02", note: ""},
-            {type: "expense", description: "聖誕制服", amount: 24480, date: "2025-11-05", note: "36人x680元"},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-11-05", note: ""},
-            {type: "expense", description: "導生聚差額", amount: 1052, date: "2025-11-25", note: ""},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-11-25", note: ""},
-            {type: "expense", description: "導生聚用品", amount: 45, date: "2025-11-25", note: "導生塑膠袋"},
-            {type: "expense", description: "聖誕制服重買", amount: 4500, date: "2025-12-09", note: "9人x500元"},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-12-09", note: ""},
-            {type: "expense", description: "利息", amount: 748, date: "2025-12-21", note: ""},
-            {type: "expense", description: "尾牙班聚訂金", amount: 18500, date: "2025-12-25", note: ""},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-12-25", note: ""},
-            {type: "expense", description: "聖誕晚會差額補", amount: 8008, date: "2025-12-29", note: ""},
-            {type: "expense", description: "手續費", amount: 15, date: "2025-12-29", note: ""},
-            {type: "expense", description: "尾牙班聚", amount: 44508, date: "2026-01-23", note: ""},
-            {type: "expense", description: "手續費", amount: 15, date: "2026-01-23", note: ""}
+            {id: 1, type: "income", description: "班費收入", amount: 127500, date: "2025-05-23", note: "17人繳費"},
+            {id: 2, type: "income", description: "班費收入", amount: 127500, date: "2025-05-24", note: "17人繳費"},
+            {id: 3, type: "income", description: "班費收入", amount: 30000, date: "2025-05-25", note: "4人繳費"},
+            {id: 4, type: "income", description: "班費收入", amount: 7500, date: "2025-05-30", note: "1人繳費"},
+            {id: 5, type: "income", description: "班費收入", amount: 7500, date: "2025-05-31", note: "1人繳費"},
+            {id: 6, type: "income", description: "班費收入", amount: 7500, date: "2025-06-03", note: "1人繳費"},
+            {id: 7, type: "expense", description: "班服訂金", amount: 6000, date: "2025-06-13", note: "polo 253*43=10,879"},
+            {id: 8, type: "expense", description: "手續費", amount: 15, date: "2025-06-13", note: "跨行手續費"},
+            {id: 9, type: "expense", description: "班服尾款", amount: 15115, date: "2025-06-30", note: "Polo衫+T-shirt+班旗"},
+            {id: 10, type: "expense", description: "手續費", amount: 15, date: "2025-06-30", note: "跨行手續費"},
+            {id: 11, type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖休學退費"},
+            {id: 12, type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆休學退費"},
+            {id: 13, type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文休學退費"},
+            {id: 14, type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O休學退費"},
+            {id: 15, type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云休學退費"},
+            {id: 16, type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e 5人"},
+            {id: 17, type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
+            {id: 18, type: "expense", description: "教師節活動", amount: 21024, date: "2025-09-24", note: ""},
+            {id: 19, type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
+            {id: 20, type: "income", description: "小e聯誼會5人代墊款", amount: 8880, date: "2025-10-07", note: ""},
+            {id: 21, type: "expense", description: "聖誕餐費", amount: 84000, date: "2025-11-02", note: "28人x3000元"},
+            {id: 22, type: "expense", description: "手續費", amount: 30, date: "2025-11-02", note: ""},
+            {id: 23, type: "expense", description: "聖誕制服", amount: 24480, date: "2025-11-05", note: "36人x680元"},
+            {id: 24, type: "expense", description: "手續費", amount: 15, date: "2025-11-05", note: ""},
+            {id: 25, type: "expense", description: "導生聚差額", amount: 1052, date: "2025-11-25", note: ""},
+            {id: 26, type: "expense", description: "手續費", amount: 15, date: "2025-11-25", note: ""},
+            {id: 27, type: "expense", description: "導生聚用品", amount: 45, date: "2025-11-25", note: "導生塑膠袋"},
+            {id: 28, type: "expense", description: "聖誕制服重買", amount: 4500, date: "2025-12-09", note: "9人x500元"},
+            {id: 29, type: "expense", description: "手續費", amount: 15, date: "2025-12-09", note: ""},
+            {id: 30, type: "expense", description: "利息", amount: 748, date: "2025-12-21", note: ""},
+            {id: 31, type: "expense", description: "尾牙班聚訂金", amount: 18500, date: "2025-12-25", note: ""},
+            {id: 32, type: "expense", description: "手續費", amount: 15, date: "2025-12-25", note: ""},
+            {id: 33, type: "expense", description: "聖誕晚會差額補", amount: 8008, date: "2025-12-29", note: ""},
+            {id: 34, type: "expense", description: "手續費", amount: 15, date: "2025-12-29", note: ""},
+            {id: 35, type: "expense", description: "尾牙班聚", amount: 44508, date: "2026-01-23", note: ""},
+            {id: 36, type: "expense", description: "手續費", amount: 15, date: "2026-01-23", note: ""}
         ];
         
         var currentFilter = 'all';
         var editingIndex = -1;
         var sortColumn = 'date';
         var sortDirection = 'desc';
+        var nextId = 37; // 下一個新增的交易 ID
         
         function showTab(tab) {
             document.getElementById('transactionsTab').classList.add('hidden');
@@ -292,7 +293,7 @@
             sortedForBalance.forEach(function(t) {
                 if (t.type === 'income') balance += parseInt(t.amount);
                 else balance -= parseInt(t.amount);
-                balanceMap[t.date + '|' + t.description + '|' + t.amount] = balance;
+                balanceMap[t.id] = balance;
             });
             
             var html = '';
@@ -302,7 +303,7 @@
                 
                 var typeLabel = t.type === 'income' ? '收入' : '支出';
                 var amountPrefix = t.type === 'income' ? '+' : '-';
-                var balance = balanceMap[t.date + '|' + t.description + '|' + t.amount];
+                var balance = balanceMap[t.id];
                 var balanceClass = balance >= 0 ? 'positive' : 'negative';
                 
                 html += '<tr>';
@@ -359,6 +360,7 @@
         document.getElementById('transactionForm').addEventListener('submit', function(e) {
             e.preventDefault();
             var transaction = {
+                id: editingIndex >= 0 ? transactions[editingIndex].id : nextId++,
                 type: document.getElementById('type').value,
                 description: document.getElementById('description').value,
                 amount: parseInt(document.getElementById('amount').value),
