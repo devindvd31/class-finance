@@ -18,8 +18,8 @@
         .card-value { font-size: 2.5em; font-weight: bold; }
         .main-content { display: grid; grid-template-columns: 1fr 2fr; gap: 20px; }
         @media (max-width: 900px) { .main-content { grid-template-columns: 1fr; } }
-        .form-card, .table-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        .form-card h2, .table-card h2 { color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
+        .form-card, .table-card, .report-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        .form-card h2, .table-card h2, .report-card h2 { color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; color: #555; margin-bottom: 5px; font-weight: 500; }
         .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 10px; font-size: 1em; }
@@ -28,9 +28,9 @@
         .btn-primary { background: #667eea; color: white; width: 100%; padding: 12px 30px; }
         .btn-edit { background: #ffa500; color: white; }
         .btn-delete { background: #ff6b6b; color: white; }
-        .btn-save { background: #11998e; color: white; }
+        .btn-report { background: #11998e; color: white; }
         .btn-cancel { background: #999; color: white; }
-        .filters { display: flex; gap: 10px; margin-bottom: 20px; }
+        .filters { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
         .filter-btn { padding: 8px 16px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer; }
         .filter-btn.active { background: #667eea; color: white; }
         table { width: 100%; border-collapse: collapse; table-layout: auto; }
@@ -46,11 +46,28 @@
         .col-balance { width: 100px; text-align: right; white-space: nowrap; }
         .col-action { width: 100px; }
         .col-note { text-align: left; }
-        td[col-note] { text-align: left; }
         .type-income { color: #11998e; font-weight: bold; }
         .type-expense { color: #f5576c; font-weight: bold; }
         .positive { color: #11998e; }
         .negative { color: #f5576c; }
+        
+        /* 報表樣式 */
+        .report-month { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 15px; }
+        .report-month-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .report-month-title { font-size: 1.2em; font-weight: bold; color: #333; }
+        .report-month-balance { font-size: 1.1em; font-weight: bold; }
+        .report-month-details { display: flex; gap: 20px; justify-content: center; }
+        .report-income { color: #11998e; }
+        .report-expense { color: #f5576c; }
+        .report-item { padding: 8px 15px; background: white; border-radius: 8px; margin: 5px 0; display: flex; justify-content: space-between; }
+        .report-item-desc { flex: 1; text-align: left; }
+        .report-item-amount { font-weight: bold; }
+        
+        .tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { padding: 10px 20px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer; }
+        .tab-btn.active { background: #667eea; color: white; }
+        
+        .hidden { display: none; }
     </style>
 </head>
 <body>
@@ -70,63 +87,84 @@
                 <div class="card-value" id="totalExpense">NT$0</div>
             </div>
         </div>
-        <div class="main-content">
-            <div class="form-card">
-                <h2>📝 新增交易</h2>
-                <form id="transactionForm">
-                    <div class="form-group">
-                        <label>類型</label>
-                        <select id="type">
-                            <option value="income">收入</option>
-                            <option value="expense">支出</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>項目名稱</label>
-                        <input type="text" id="description" required>
-                    </div>
-                    <div class="form-group">
-                        <label>金額 (NT$)</label>
-                        <input type="number" id="amount" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label>日期</label>
-                        <input type="date" id="date" required>
-                    </div>
-                    <div class="form-group">
-                        <label>備註</label>
-                        <textarea id="note" rows="2"></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary" id="submitBtn">新增記錄</button>
-                    <button type="button" class="btn btn-cancel" id="cancelBtn" style="display:none; width:100%; margin-top:10px;">取消編輯</button>
-                </form>
-            </div>
-            <div class="table-card">
-                <h2>📊 交易記錄</h2>
-                <div class="filters">
-                    <button class="filter-btn active" onclick="setFilter('all')">全部</button>
-                    <button class="filter-btn" onclick="setFilter('income')">收入</button>
-                    <button class="filter-btn" onclick="setFilter('expense')">支出</button>
+        
+        <div class="tab-buttons">
+            <button class="tab-btn active" onclick="showTab('transactions')">📊 交易記錄</button>
+            <button class="tab-btn" onclick="showTab('report')">📋 每月報表</button>
+        </div>
+        
+        <!-- 交易記錄區塊 -->
+        <div id="transactionsTab">
+            <div class="main-content">
+                <div class="form-card">
+                    <h2>📝 新增交易</h2>
+                    <form id="transactionForm">
+                        <div class="form-group">
+                            <label>類型</label>
+                            <select id="type">
+                                <option value="income">收入</option>
+                                <option value="expense">支出</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>項目名稱</label>
+                            <input type="text" id="description" required>
+                        </div>
+                        <div class="form-group">
+                            <label>金額 (NT$)</label>
+                            <input type="number" id="amount" min="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label>日期</label>
+                            <input type="date" id="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>備註</label>
+                            <textarea id="note" rows="2"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">新增記錄</button>
+                        <button type="button" class="btn btn-cancel" id="cancelBtn" style="display:none; width:100%; margin-top:10px;">取消編輯</button>
+                    </form>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th class="col-date" onclick="sortTable('date')">日期</th>
-                            <th class="col-desc" onclick="sortTable('description')">項目</th>
-                            <th class="col-type" onclick="sortTable('type')">類型</th>
-                            <th class="col-amount" onclick="sortTable('amount')">金額</th>
-                            <th class="col-balance" onclick="sortTable('balance')">餘額</th>
-                            <th class="col-note">備註</th>
-                            <th class="col-action">操作</th>
-                        </tr>
-                    </thead>
-                    <tbody id="transactionTable"></tbody>
-                </table>
+                <div class="table-card">
+                    <h2>📊 交易記錄</h2>
+                    <div class="filters">
+                        <button class="filter-btn active" onclick="setFilter('all')">全部</button>
+                        <button class="filter-btn" onclick="setFilter('income')">收入</button>
+                        <button class="filter-btn" onclick="setFilter('expense')">支出</button>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th class="col-date" onclick="sortTable('date')">日期</th>
+                                <th class="col-desc" onclick="sortTable('description')">項目</th>
+                                <th class="col-type" onclick="sortTable('type')">類型</th>
+                                <th class="col-amount" onclick="sortTable('amount')">金額</th>
+                                <th class="col-balance" onclick="sortTable('balance')">餘額</th>
+                                <th class="col-note">備註</th>
+                                <th class="col-action">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionTable"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 每月報表區塊 -->
+        <div id="reportTab" class="hidden">
+            <div class="report-card">
+                <h2>📋 每月收支報表</h2>
+                <div class="filters">
+                    <button class="btn btn-report" onclick="exportReport()">📤 匯出報表</button>
+                </div>
+                <div id="monthlyReport"></div>
             </div>
         </div>
     </div>
+    
     <script>
-        // 班費資料（含備註）
+        // 班費資料
         var transactions = [
             {type: "income", description: "班費收入", amount: 127500, date: "2025-05-23", note: "17人繳費"},
             {type: "income", description: "班費收入", amount: 127500, date: "2025-05-24", note: "17人繳費"},
@@ -138,21 +176,21 @@
             {type: "expense", description: "手續費", amount: 15, date: "2025-06-13", note: "跨行手續費"},
             {type: "expense", description: "班服尾款", amount: 15115, date: "2025-06-30", note: "Polo衫：253*43=10,879元 T-shirt：209*44=9,196元 班旗（長）：400元 班旗（短）：240元 運費：400 Total：21,115元 扣掉訂金6,000元，尾款15,115元。"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-06-30", note: "跨行手續費"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云申請休學退班費 7500(班費)-253(polo衫)-209(Tshirt)=7,038"},
-            {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e聯誼會5人(代墊款=8878)=40人 40人*餐會 1,775.6=71,024元"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "楊O霖申請休學退班費"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-08-20", note: "張O帆申請休學退班費"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-15", note: "王O文申請休學退班費"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-16", note: "鄭O申請休學退班費"},
+            {type: "expense", description: "班費退費", amount: 7038, date: "2025-09-19", note: "趙O云申請休學退班費"},
+            {type: "expense", description: "教師節活動", amount: 50000, date: "2025-09-24", note: "114e 35人+小e聯誼會5人"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
             {type: "expense", description: "教師節活動", amount: 21024, date: "2025-09-24", note: ""},
             {type: "expense", description: "手續費", amount: 15, date: "2025-09-24", note: ""},
-            {type: "income", description: "小e聯誼會5人代墊款", amount: 8880, date: "2025-10-07", note: "小e聯誼會5人(代墊款歸回)"},
+            {type: "income", description: "小e聯誼會5人代墊款", amount: 8880, date: "2025-10-07", note: ""},
             {type: "expense", description: "聖誕餐費", amount: 84000, date: "2025-11-02", note: "28人x3000元"},
             {type: "expense", description: "手續費", amount: 30, date: "2025-11-02", note: ""},
             {type: "expense", description: "聖誕制服", amount: 24480, date: "2025-11-05", note: "36人x680元"},
             {type: "expense", description: "手續費", amount: 15, date: "2025-11-05", note: ""},
-            {type: "expense", description: "導生聚差額", amount: 1052, date: "2025-11-25", note: "導生聚會共花費5252元，扣掉申請活動經費4,200元，班費需支出1052元。"},
+            {type: "expense", description: "導生聚差額", amount: 1052, date: "2025-11-25", note: ""},
             {type: "expense", description: "手續費", amount: 15, date: "2025-11-25", note: ""},
             {type: "expense", description: "導生聚用品", amount: 45, date: "2025-11-25", note: "導生塑膠袋"},
             {type: "expense", description: "聖誕制服重買", amount: 4500, date: "2025-12-09", note: "9人x500元"},
@@ -171,6 +209,20 @@
         var sortColumn = 'date';
         var sortDirection = 'desc';
         
+        function showTab(tab) {
+            document.getElementById('transactionsTab').classList.add('hidden');
+            document.getElementById('reportTab').classList.add('hidden');
+            document.getElementById(tab + 'Tab').classList.remove('hidden');
+            
+            var buttons = document.querySelectorAll('.tab-btn');
+            buttons.forEach(function(btn) { btn.classList.remove('active'); });
+            event.target.classList.add('active');
+            
+            if (tab === 'report') {
+                renderMonthlyReport();
+            }
+        }
+        
         // 計算餘額
         function calculateBalances() {
             var balances = [];
@@ -186,7 +238,6 @@
             return balances;
         }
         
-        // 設定今天日期
         document.getElementById('date').valueAsDate = new Date();
         
         function formatMoney(amount) {
@@ -211,9 +262,7 @@
         
         function sortTable(column) {
             var headers = document.querySelectorAll('th');
-            headers.forEach(function(h) {
-                h.classList.remove('sorted-asc', 'sorted-desc');
-            });
+            headers.forEach(function(h) { h.classList.remove('sorted-asc', 'sorted-desc'); });
             
             if (sortColumn === column) {
                 sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
@@ -223,35 +272,19 @@
             }
             
             var header = document.querySelector('th[onclick="sortTable(\'' + column + '\')"]');
-            if (header) {
-                header.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
-            }
+            if (header) header.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
             
             transactions.sort(function(a, b) {
                 var valA, valB;
-                if (column === 'date') {
-                    valA = new Date(a.date);
-                    valB = new Date(b.date);
-                } else if (column === 'amount') {
-                    valA = parseInt(a.amount);
-                    valB = parseInt(b.amount);
-                } else if (column === 'type') {
-                    valA = a.type;
-                    valB = b.type;
-                } else if (column === 'description') {
-                    valA = a.description;
-                    valB = b.description;
-                } else if (column === 'balance') {
-                    var balances = calculateBalances();
-                    valA = balances[transactions.indexOf(a)];
-                    valB = balances[transactions.indexOf(b)];
-                }
-                
+                if (column === 'date') { valA = new Date(a.date); valB = new Date(b.date); }
+                else if (column === 'amount') { valA = parseInt(a.amount); valB = parseInt(b.amount); }
+                else if (column === 'type') { valA = a.type; valB = b.type; }
+                else if (column === 'description') { valA = a.description; valB = b.description; }
+                else if (column === 'balance') { var balances = calculateBalances(); valA = balances[transactions.indexOf(a)]; valB = balances[transactions.indexOf(b)]; }
                 if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
                 if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
                 return 0;
             });
-            
             renderTable();
         }
         
@@ -276,8 +309,7 @@
                 html += '<td>';
                 html += '<button class="btn btn-edit" onclick="editTransaction(' + i + ')">編輯</button>';
                 html += '<button class="btn btn-delete" onclick="deleteTransaction(' + i + ')">刪除</button>';
-                html += '</td>';
-                html += '</tr>';
+                html += '</td></tr>';
             }
             tbody.innerHTML = html;
         }
@@ -285,9 +317,7 @@
         function setFilter(filter) {
             currentFilter = filter;
             var buttons = document.querySelectorAll('.filter-btn');
-            for (var i = 0; i < buttons.length; i++) {
-                buttons[i].classList.remove('active');
-            }
+            buttons.forEach(function(b) { b.classList.remove('active'); });
             event.target.classList.add('active');
             renderTable();
         }
@@ -329,7 +359,6 @@
                 date: document.getElementById('date').value,
                 note: document.getElementById('note').value
             };
-            
             if (editingIndex >= 0) {
                 transactions[editingIndex] = transaction;
                 editingIndex = -1;
@@ -338,12 +367,104 @@
             } else {
                 transactions.push(transaction);
             }
-            
             document.getElementById('transactionForm').reset();
             document.getElementById('date').valueAsDate = new Date();
             updateDashboard();
             renderTable();
         });
+        
+        // 每月報表
+        function renderMonthlyReport() {
+            var monthlyData = {};
+            var balances = calculateBalances();
+            var balance = 0;
+            
+            // 按月份分組
+            transactions.forEach(function(t, i) {
+                var month = t.date.substring(0, 7);
+                if (!monthlyData[month]) {
+                    monthlyData[month] = { income: 0, expense: 0, items: [] };
+                }
+                if (t.type === 'income') {
+                    monthlyData[month].income += parseInt(t.amount);
+                    balance += parseInt(t.amount);
+                } else {
+                    monthlyData[month].expense += parseInt(t.amount);
+                    balance -= parseInt(t.amount);
+                }
+                monthlyData[month].items.push(t);
+                monthlyData[month].endingBalance = balance;
+            });
+            
+            var months = Object.keys(monthlyData).sort().reverse();
+            var html = '';
+            
+            months.forEach(function(month) {
+                var data = monthlyData[month];
+                var [year, mon] = month.split('-');
+                var balanceClass = data.endingBalance >= 0 ? 'positive' : 'negative';
+                
+                html += '<div class="report-month">';
+                html += '<div class="report-month-header">';
+                html += '<div class="report-month-title">' + year + '年 ' + mon + '月</div>';
+                html += '<div class="report-month-balance ' + balanceClass + '">期末餘額：' + formatMoney(data.endingBalance) + '</div>';
+                html += '</div>';
+                html += '<div class="report-month-details">';
+                html += '<div class="report-income">📥 收入：' + formatMoney(data.income) + '</div>';
+                html += '<div class="report-expense">📤 支出：' + formatMoney(data.expense) + '</div>';
+                html += '</div>';
+                html += '<hr style="margin:15px 0;border:none;border-top:1px solid #ddd">';
+                
+                data.items.forEach(function(item) {
+                    var amountPrefix = item.type === 'income' ? '+' : '-';
+                    var amountClass = item.type === 'income' ? 'report-income' : 'report-expense';
+                    html += '<div class="report-item">';
+                    html += '<div class="report-item-desc">' + item.date + ' ' + item.description + (item.note ? ' <span style="color:#999">(' + item.note + ')</span>' : '') + '</div>';
+                    html += '<div class="report-item-amount ' + amountClass + '">' + amountPrefix + formatMoney(item.amount) + '</div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            });
+            
+            document.getElementById('monthlyReport').innerHTML = html || '<p style="text-align:center;color:#999">尚無資料</p>';
+        }
+        
+        // 匯出報表
+        function exportReport() {
+            var monthlyData = {};
+            var balance = 0;
+            
+            transactions.forEach(function(t) {
+                var month = t.date.substring(0, 7);
+                if (!monthlyData[month]) monthlyData[month] = { income: 0, expense: 0, items: [] };
+                if (t.type === 'income') { monthlyData[month].income += parseInt(t.amount); balance += parseInt(t.amount); }
+                else { monthlyData[month].expense += parseInt(t.amount); balance -= parseInt(t.amount); }
+                monthlyData[month].items.push(t);
+                monthlyData[month].endingBalance = balance;
+            });
+            
+            var months = Object.keys(monthlyData).sort().reverse();
+            var report = '========== 班費收支報表 ==========\n\n';
+            
+            months.forEach(function(month) {
+                var data = monthlyData[month];
+                var [year, mon] = month.split('-');
+                report += '【' + year + '年 ' + mon + '月】 期末餘額：' + formatMoney(data.endingBalance) + '\n';
+                report += '收入：' + formatMoney(data.income) + ' | 支出：' + formatMoney(data.expense) + '\n';
+                report += '----------------------------------------\n';
+                data.items.forEach(function(item) {
+                    var prefix = item.type === 'income' ? '[收入]' : '[支出]';
+                    report += item.date + ' ' + prefix + ' ' + item.description + ' ' + formatMoney(item.amount) + '\n';
+                });
+                report += '\n';
+            });
+            
+            var blob = new Blob([report], { type: 'text/plain;charset=utf-8' });
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = '班費報表_' + new Date().toISOString().split('T')[0] + '.txt';
+            link.click();
+        }
         
         // 初始化
         updateDashboard();
