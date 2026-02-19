@@ -55,14 +55,15 @@
         .positive { color: #11998e; }
         .negative { color: #f5576c; }
         
-        .report-month { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 15px; page-break-inside: avoid; }
-        .report-month-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .report-month-title { font-size: 1.2em; font-weight: bold; color: #333; }
-        .report-month-balance { font-size: 1.1em; font-weight: bold; }
-        .report-month-details { display: flex; gap: 20px; justify-content: center; }
+        .report-month { margin-bottom: 10px; }
+        .report-month-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .report-month-title { font-size: 1.1em; font-weight: bold; color: #333; }
+        .report-month-balance { font-size: 1em; font-weight: bold; }
+        .report-month-details { display: flex; gap: 15px; font-size: 0.9em; }
         .report-income { color: #11998e; }
         .report-expense { color: #f5576c; }
-        .report-item { padding: 8px 15px; background: white; border-radius: 8px; margin: 5px 0; display: flex; justify-content: space-between; }
+        .report-item { padding: 4px 8px; display: flex; justify-content: space-between; font-size: 0.9em; }
+        .report-item:nth-child(even) { background: #f9f9f9; }
         .report-item-desc { flex: 1; text-align: left; }
         .report-item-amount { font-weight: bold; }
         
@@ -214,7 +215,7 @@
         var currentFilter = 'all';
         var editingIndex = -1;
         var sortColumn = 'date';
-        var sortDirection = 'desc'; // 預設由新到舊
+        var sortDirection = 'asc'; // 預設由新到舊（日期越大越新）
         
         function showTab(tab) {
             document.getElementById('transactionsTab').classList.add('hidden');
@@ -465,7 +466,24 @@
         
         // 初始化 - 預設排序由新到舊
         updateDashboard();
-        sortTable('date');
+        
+        // 手動設定排序狀態（不觸發 toggle）
+        sortColumn = 'date';
+        sortDirection = 'desc';
+        transactions.sort(function(a, b) {
+            var valA = new Date(a.date);
+            var valB = new Date(b.date);
+            if (valA < valB) return 1; // 新的在前
+            if (valA > valB) return -1;
+            return 0;
+        });
+        renderTable();
+        
+        // 顯示排序圖示
+        var headers = document.querySelectorAll('th');
+        headers.forEach(function(h) { h.classList.remove('sorted-asc', 'sorted-desc'); });
+        var dateHeader = document.querySelector('th[onclick="sortTable(\'date\')"]');
+        if (dateHeader) dateHeader.classList.add('sorted-desc');
     </script>
 </body>
 </html>
