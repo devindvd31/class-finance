@@ -46,34 +46,27 @@
         .col-date { width: 110px; white-space: nowrap; }
         .col-desc { width: 150px; }
         .col-type { width: 60px; white-space: nowrap; }
-        .col-amount { width: 100px; text-align: right; white-space: nowrap; }
-        .col-balance { width: 100px; text-align: right; white-space: nowrap; }
+        .col-amount { width: 100px; white-space: nowrap; }
+        .col-balance { width: 100px; white-space: nowrap; }
         .col-action { width: 100px; }
-        .col-note { text-align: left; }
         .type-income { color: #11998e; font-weight: bold; }
         .type-expense { color: #f5576c; font-weight: bold; }
         .positive { color: #11998e; }
         .negative { color: #f5576c; }
-        
-        .report-month { margin-bottom: 10px; }
-        .report-month-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .report-month-title { font-size: 1.1em; font-weight: bold; color: #333; }
-        .report-month-balance { font-size: 1em; font-weight: bold; }
-        .report-month-details { display: flex; gap: 15px; font-size: 0.9em; }
+        .report-month { background: #f8f9fa; border-radius: 10px; padding: 15px; margin-bottom: 15px; page-break-inside: avoid; }
+        .report-month-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .report-month-title { font-size: 1.2em; font-weight: bold; color: #333; }
+        .report-month-balance { font-size: 1.1em; font-weight: bold; }
+        .report-month-details { display: flex; gap: 20px; justify-content: center; }
         .report-income { color: #11998e; }
         .report-expense { color: #f5576c; }
-        .report-item { padding: 4px 8px; display: flex; justify-content: space-between; font-size: 0.9em; }
-        .report-item:nth-child(even) { background: #f9f9f9; }
+        .report-item { padding: 8px 15px; background: white; border-radius: 8px; margin: 5px 0; display: flex; justify-content: space-between; }
         .report-item-desc { flex: 1; text-align: left; }
         .report-item-amount { font-weight: bold; }
-        
         .tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
         .tab-btn { padding: 10px 20px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 20px; cursor: pointer; }
         .tab-btn.active { background: #667eea; color: white; }
-        
         .hidden { display: none; }
-        
-        /* 匯出按鈕區域 */
         .export-buttons { margin-bottom: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
     </style>
 </head>
@@ -100,7 +93,6 @@
             <button class="tab-btn" onclick="showTab('report')">📋 每月報表</button>
         </div>
         
-        <!-- 交易記錄區塊 -->
         <div id="transactionsTab">
             <div class="main-content">
                 <div class="form-card">
@@ -147,8 +139,8 @@
                                 <th class="col-desc" onclick="sortTable('description')">項目</th>
                                 <th class="col-type" onclick="sortTable('type')">類型</th>
                                 <th class="col-amount" onclick="sortTable('amount')">金額</th>
-                                <th class="col-balance" onclick="sortTable('balance')">餘額</th>
-                                <th class="col-note" style="text-align:center">備註</th>
+                                <th class="col-balance">餘額</th>
+                                <th>備註</th>
                                 <th class="col-action">操作</th>
                             </tr>
                         </thead>
@@ -158,7 +150,6 @@
             </div>
         </div>
         
-        <!-- 每月報表區塊 -->
         <div id="reportTab" class="hidden">
             <div class="report-card" id="reportContent">
                 <h2>📋 每月收支報表</h2>
@@ -215,7 +206,7 @@
         var currentFilter = 'all';
         var editingIndex = -1;
         var sortColumn = 'date';
-        var sortDirection = 'desc'; // 預設由新到舊
+        var sortDirection = 'desc';
         
         function showTab(tab) {
             document.getElementById('transactionsTab').classList.add('hidden');
@@ -231,18 +222,20 @@
             }
         }
         
+        // 計算餘額（基於原始時間順序）
         function calculateBalances() {
             var balances = [];
             var balance = 0;
-            for (var i = 0; i < transactions.length; i++) {
-                if (transactions[i].type === 'income') {
-                    balance += parseInt(transactions[i].amount);
-                } else {
-                    balance -= parseInt(transactions[i].amount);
-                }
-                balances[i] = balance;
-            }
-            return balances;
+            // 先按日期舊到新排序來計算餘額
+            var sorted = transactions.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+            var balanceMap = {};
+            sorted.forEach(function(t) {
+                if (t.type === 'income') balance += parseInt(t.amount);
+                else balance -= parseInt(t.amount);
+                // 用日期+金額當作 key（因為同一天可能有多筆記錄）
+                balanceMap[t.date + '|' + t.amount] = balance;
+            });
+            return balanceMap;
         }
         
         document.getElementById('date').valueAsDate = new Date();
@@ -254,13 +247,10 @@
         function updateDashboard() {
             var totalIncome = 0;
             var totalExpense = 0;
-            for (var i = 0; i < transactions.length; i++) {
-                if (transactions[i].type === 'income') {
-                    totalIncome += parseInt(transactions[i].amount);
-                } else {
-                    totalExpense += parseInt(transactions[i].amount);
-                }
-            }
+            transactions.forEach(function(t) {
+                if (t.type === 'income') totalIncome += parseInt(t.amount);
+                else totalExpense += parseInt(t.amount);
+            });
             var balance = totalIncome - totalExpense;
             document.getElementById('balance').textContent = formatMoney(balance);
             document.getElementById('totalIncome').textContent = formatMoney(totalIncome);
@@ -275,67 +265,52 @@
                 sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
             } else {
                 sortColumn = column;
-                sortDirection = 'desc'; // 預設由新到舊
+                sortDirection = 'desc';
             }
             
             var header = document.querySelector('th[onclick="sortTable(\'' + column + '\')"]');
             if (header) header.classList.add(sortDirection === 'asc' ? 'sorted-asc' : 'sorted-desc');
             
-            // 複製陣列來排序，不改變原始順序（這樣餘額才會正確）
-            var sortedTransactions = transactions.slice();
-            sortedTransactions.sort(function(a, b) {
+            transactions.sort(function(a, b) {
                 var valA, valB;
                 if (column === 'date') { valA = new Date(a.date); valB = new Date(b.date); }
                 else if (column === 'amount') { valA = parseInt(a.amount); valB = parseInt(b.amount); }
                 else if (column === 'type') { valA = a.type; valB = b.type; }
                 else if (column === 'description') { valA = a.description; valB = b.description; }
+                
                 if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
                 if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
                 return 0;
             });
             
-            // 用排序後的順序顯示，但餘額用原始順序計算
-            renderTable(sortedTransactions);
+            renderTable();
         }
         
-        function renderTable(displayTransactions) {
-            if (!displayTransactions) displayTransactions = transactions;
+        function renderTable() {
             var tbody = document.getElementById('transactionTable');
+            var balanceMap = calculateBalances();
             var html = '';
             
-            // 計算餘額（基於原始順序）
-            var balances = [];
-            var balance = 0;
             transactions.forEach(function(t, i) {
-                if (t.type === 'income') balance += parseInt(t.amount);
-                else balance -= parseInt(t.amount);
-                balances[i] = balance;
-            });
-            
-            // 建立 index 对照表
-            var indexMap = {};
-            transactions.forEach(function(t, i) { indexMap[t] = i; });
-            
-            for (var i = 0; i < displayTransactions.length; i++) {
-                var t = displayTransactions[i];
-                if (currentFilter !== 'all' && t.type !== currentFilter) continue;
-                var originalIndex = indexMap[t];
+                if (currentFilter !== 'all' && t.type !== currentFilter) return;
+                
                 var typeLabel = t.type === 'income' ? '收入' : '支出';
                 var amountPrefix = t.type === 'income' ? '+' : '-';
-                var balance = balances[originalIndex];
+                var balance = balanceMap[t.date + '|' + t.amount];
                 var balanceClass = balance >= 0 ? 'positive' : 'negative';
+                
                 html += '<tr>';
                 html += '<td>' + t.date + '</td>';
                 html += '<td>' + t.description + '</td>';
                 html += '<td class="type-' + t.type + '">' + typeLabel + '</td>';
-                html += '<td class="type-' + t.type + '" style="text-align:right">' + amountPrefix + formatMoney(t.amount) + '</td>';
-                html += '<td class="' + balanceClass + '" style="text-align:right">' + formatMoney(balance) + '</td>';
-                html += '<td style="text-align:center">' + t.note + '</td>';
+                html += '<td class="type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
+                html += '<td class="' + balanceClass + '">' + formatMoney(balance) + '</td>';
+                html += '<td>' + t.note + '</td>';
                 html += '<td>';
-                html += '<button class="btn btn-edit" onclick="editTransaction(' + originalIndex + ')">編輯</button>';
-                html += '<button class="btn btn-delete" onclick="deleteTransaction(' + originalIndex + ')">刪除</button>';
+                html += '<button class="btn btn-edit" onclick="editTransaction(' + i + ')">編輯</button>';
+                html += '<button class="btn btn-delete" onclick="deleteTransaction(' + i + ')">刪除</button>';
                 html += '</td></tr>';
-            }
+            });
             tbody.innerHTML = html;
         }
         
@@ -399,21 +374,18 @@
         });
         
         function renderMonthlyReport() {
-            // 按日期排序（由新到舊）
-            var sortedTransactions = transactions.slice();
-            sortedTransactions.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+            var sorted = transactions.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
             
             var totalIncome = 0;
             var totalExpense = 0;
             
-            var html = '<div style="padding:10px;">';
-            
-            sortedTransactions.forEach(function(t) {
+            sorted.forEach(function(t) {
                 if (t.type === 'income') totalIncome += parseInt(t.amount);
                 else totalExpense += parseInt(t.amount);
             });
             
-            // 顯示總計
+            var html = '<div style="padding:10px;">';
+            
             html += '<div style="background:#f0f0f0;padding:15px;border-radius:10px;margin-bottom:20px;">';
             html += '<div style="font-size:1.1em;font-weight:bold;margin-bottom:10px;">📊 總計</div>';
             html += '<div>📥 總收入：<span style="color:#11998e;font-weight:bold;">' + formatMoney(totalIncome) + '</span></div>';
@@ -421,8 +393,7 @@
             html += '<div>💰 餘額：<span style="font-weight:bold;">' + formatMoney(totalIncome - totalExpense) + '</span></div>';
             html += '</div>';
             
-            // 條列式顯示
-            sortedTransactions.forEach(function(t) {
+            sorted.forEach(function(t) {
                 var amountPrefix = t.type === 'income' ? '+' : '-';
                 var amountClass = t.type === 'income' ? 'report-income' : 'report-expense';
                 html += '<div style="padding:12px 10px;border-bottom:1px solid #eee;display:flex;justify-content:space-between;align-items:center;">';
@@ -435,16 +406,14 @@
             });
             
             html += '</div>';
-            
             document.getElementById('monthlyReport').innerHTML = html || '<p style="text-align:center;color:#999">尚無資料</p>';
         }
         
-        // 匯出 PDF
         function exportPDF() {
             var element = document.getElementById('reportContent');
             html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(function(canvas) {
                 var imgData = canvas.toDataURL('image/png');
-                var { jsPDF } = window.jspdf;
+                var jsPDF = window.jspdf.jsPDF;
                 var pdf = new jsPDF('p', 'mm', 'a4');
                 var imgWidth = 210;
                 var pageHeight = 297;
@@ -466,7 +435,6 @@
             });
         }
         
-        // 匯出圖片
         function exportImage() {
             var element = document.getElementById('reportContent');
             html2canvas(element, { scale: 2, backgroundColor: '#ffffff' }).then(function(canvas) {
@@ -477,24 +445,12 @@
             });
         }
         
-        // 初始化 - 預設排序由新到舊
+        // 初始化 - 預設由新到舊排序
         updateDashboard();
-        
-        // 手動設定排序狀態（不觸發 toggle）
-        sortColumn = 'date';
-        sortDirection = 'desc';
-        transactions.sort(function(a, b) {
-            var valA = new Date(a.date);
-            var valB = new Date(b.date);
-            if (valA < valB) return 1; // 新的在前
-            if (valA > valB) return -1;
-            return 0;
-        });
+        transactions.sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
         renderTable();
         
         // 顯示排序圖示
-        var headers = document.querySelectorAll('th');
-        headers.forEach(function(h) { h.classList.remove('sorted-asc', 'sorted-desc'); });
         var dateHeader = document.querySelector('th[onclick="sortTable(\'date\')"]');
         if (dateHeader) dateHeader.classList.add('sorted-desc');
     </script>
