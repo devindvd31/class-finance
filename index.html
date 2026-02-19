@@ -407,9 +407,6 @@
         // 預設資料
         const defaultData = [{"type":"income","description":"班費收入","amount":127500,"date":"2025-05-23","note":"17人繳費"},{"type":"income","description":"班費收入","amount":127500,"date":"2025-05-24","note":"17人繳費"},{"type":"income","description":"班費收入","amount":30000,"date":"2025-05-25","note":"4人繳費"},{"type":"income","description":"班費收入","amount":7500,"date":"2025-05-30","note":"1人繳費"},{"type":"income","description":"班費收入","amount":7500,"date":"2025-05-31","note":"1人繳費"},{"type":"income","description":"班費收入","amount":7500,"date":"2025-06-03","note":"1人繳費"},{"type":"expense","description":"班服訂金","amount":6000,"date":"2025-06-13","note":"polo 253*43=10,879\nT       209*44 =9,196\n班旗(長)400元+班旗(短)240元\nTotal：20,715"},{"type":"expense","description":"手續費","amount":15,"date":"2025-06-13","note":"跨行手續費"},{"type":"expense","description":"班服尾款","amount":15115,"date":"2025-06-30","note":"Polo衫：253*43=10,879元\nT-shirt：209*44=9,196元\n班旗（長）：400元\n班旗（短）：240元\n運費：400\nTotal：21,115元\n扣掉訂金6,000元，尾款15,115元。"},{"type":"expense","description":"手續費","amount":15,"date":"2025-06-30","note":"跨行手續費"},{"type":"expense","description":"班費退費","amount":7038,"date":"2025-08-20","note":"楊O霖申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},{"type":"expense","description":"班費退費","amount":7038,"date":"2025-08-20","note":"張O帆申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},{"type":"expense","description":"班費退費","amount":7038,"date":"2025-09-15","note":"王O文申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},{"type":"expense","description":"班費退費","amount":7038,"date":"2025-09-16","note":"鄭O申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},{"type":"expense","description":"班費退費","amount":7038,"date":"2025-09-19","note":"趙O云申請休學退班費\n7500(班費)-253(polo衫)-209(Tshirt)=7,038"},{"type":"expense","description":"教師節活動","amount":50000,"date":"2025-09-24","note":"114e 35人+小e聯誼會5人(代墊款=8878)=40人\n40人*餐會 1,775.6=71,024元"},{"type":"expense","description":"手續費","amount":15,"date":"2025-09-24","note":""},{"type":"expense","description":"教師節活動","amount":21024,"date":"2025-09-24","note":""},{"type":"expense","description":"手續費","amount":15,"date":"2025-09-24","note":""},{"type":"income","description":"小e聯誼會5人代墊款","amount":8880,"date":"2025-10-07","note":"小e聯誼會5人(代墊款歸回)"},{"type":"expense","description":"聖誕餐費","amount":84000,"date":"2025-11-02","note":"28人x3000元"},{"type":"expense","description":"手續費","amount":30,"date":"2025-11-02","note":""},{"type":"expense","description":"聖誕制服","amount":24480,"date":"2025-11-05","note":"36人x680元"},{"type":"expense","description":"手續費","amount":15,"date":"2025-11-05","note":""},{"type":"expense","description":"導生聚差額","amount":1052,"date":"2025-11-25","note":"導生聚會共花費5252元，扣掉申請活動經費4,200元，班費需支出1052元。"},{"type":"expense","description":"手續費","amount":15,"date":"2025-11-25","note":""},{"type":"expense","description":"導生聚用品","amount":45,"date":"2025-11-25","note":"導生塑膠袋"},{"type":"expense","description":"聖誕制服重買","amount":4500,"date":"2025-12-09","note":"9人x500元"},{"type":"expense","description":"手續費","amount":15,"date":"2025-12-09","note":""},{"type":"expense","description":"利息","amount":748,"date":"2025-12-21","note":""},{"type":"expense","description":"尾牙班聚訂金","amount":18500,"date":"2025-12-25","note":""},{"type":"expense","description":"手續費","amount":15,"date":"2025-12-25","note":""},{"type":"expense","description":"聖誕晚會差額補","amount":8008,"date":"2025-12-29","note":""},{"type":"expense","description":"手續費","amount":15,"date":"2025-12-29","note":""},{"type":"expense","description":"尾牙班聚","amount":44508,"date":"2026-01-23","note":""},{"type":"expense","description":"手續費","amount":15,"date":"2026-01-23","note":""}];
         
-        // 如果沒有本地資料，就用預設資料（強行覆蓋）
-        transactions = defaultData;
-        saveData();
         let currentFilter = 'all';
         let currentMonth = 'all';
         
@@ -651,6 +648,14 @@
         }
         
         // 初始化
+        updateDashboard();
+        renderTable();
+        initMonthFilter();
+        renderMonthlyReport();
+        
+        // 載入預設資料（強行覆蓋，確保每次都載入）
+        transactions = defaultData;
+        saveData();
         updateDashboard();
         renderTable();
         initMonthFilter();
