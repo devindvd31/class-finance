@@ -164,6 +164,7 @@
                         <button class="filter-btn active" onclick="setFilter('all')">全部</button>
                         <button class="filter-btn" onclick="setFilter('income')">收入</button>
                         <button class="filter-btn" onclick="setFilter('expense')">支出</button>
+                        <button class="filter-btn" id="hideAmountBtn" onclick="toggleHideAmount()" style="margin-left:auto;">🔒 隱藏金額</button>
                     </div>
                     <div class="table-wrapper">
                     <table>
@@ -246,6 +247,15 @@
         var sortColumn = 'date';
         var sortDirection = 'desc';
         var nextId = 37; // 下一個新增的交易 ID
+        var amountsHidden = false;
+        
+        function toggleHideAmount() {
+            amountsHidden = !amountsHidden;
+            var btn = document.getElementById('hideAmountBtn');
+            btn.textContent = amountsHidden ? '🔓 顯示金額' : '🔒 隱藏金額';
+            btn.classList.toggle('active', amountsHidden);
+            renderTable();
+        }
         
         function showTab(tab) {
             document.getElementById('transactionsTab').classList.add('hidden');
@@ -291,6 +301,11 @@
             return 'NT$' + parseInt(amount).toLocaleString();
         }
         
+        function formatDisplayMoney(amount) {
+            if (amountsHidden) return '****';
+            return formatMoney(amount);
+        }
+        
         function updateDashboard() {
             var totalIncome = 0;
             var totalExpense = 0;
@@ -299,9 +314,9 @@
                 else totalExpense += parseInt(t.amount);
             });
             var balance = totalIncome - totalExpense;
-            document.getElementById('balance').textContent = formatMoney(balance);
-            document.getElementById('totalIncome').textContent = formatMoney(totalIncome);
-            document.getElementById('totalExpense').textContent = formatMoney(totalExpense);
+            document.getElementById('balance').textContent = formatDisplayMoney(balance);
+            document.getElementById('totalIncome').textContent = formatDisplayMoney(totalIncome);
+            document.getElementById('totalExpense').textContent = formatDisplayMoney(totalExpense);
         }
         
         function sortTable(column) {
@@ -373,8 +388,8 @@
                 html += '<td>' + t.date + '</td>';
                 html += '<td>' + t.description + '</td>';
                 html += '<td class="type-' + t.type + '">' + typeLabel + '</td>';
-                html += '<td class="type-' + t.type + '">' + amountPrefix + formatMoney(t.amount) + '</td>';
-                html += '<td class="' + balanceClass + '">' + formatMoney(balance) + '</td>';
+                html += '<td class="type-' + t.type + '">' + amountPrefix + formatDisplayMoney(t.amount) + '</td>';
+                html += '<td class="' + balanceClass + '">' + formatDisplayMoney(balance) + '</td>';
                 html += '<td>' + t.note + '</td>';
                 html += '<td>';
                 html += '<button class="btn btn-edit" onclick="editTransaction(' + i + ')">編輯</button>';
@@ -506,7 +521,7 @@
                 html += '<div style="font-weight:bold;">' + t.date + ' ' + t.description + '</div>';
                 if (t.note) html += '<div style="color:#888;font-size:0.9em;margin-top:3px;">' + t.note + '</div>';
                 html += '</div>';
-                html += '<div class="' + amountClass + '" style="font-weight:bold;min-width:120px;text-align:right;">' + amountPrefix + formatMoney(t.amount) + '</div>';
+                html += '<div class="' + amountClass + '" style="font-weight:bold;min-width:120px;text-align:right;">' + amountPrefix + formatDisplayMoney(t.amount) + '</div>';
                 html += '</div>';
             });
             
