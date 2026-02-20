@@ -50,8 +50,9 @@
             h1 { font-size: 1.5em; }
             .card-value { font-size: 1.8em; }
             .form-card, .table-card, .report-card { padding: 15px; }
-            .filters { gap: 5px; }
-            .filter-btn { padding: 6px 12px; font-size: 0.85em; }
+            .filters { gap: 5px; flex-wrap: wrap; }
+            .filter-btn { padding: 6px 10px; font-size: 0.8em; }
+            #hideAmountBtn { width: 100%; margin-top: 5px; order: 99; }
         }
         .form-card, .table-card, .report-card { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); margin-bottom: 20px; }
         .form-card h2, .table-card h2, .report-card h2 { color: #333; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 2px solid #667eea; }
@@ -164,7 +165,7 @@
                         <button class="filter-btn active" onclick="setFilter('all')">全部</button>
                         <button class="filter-btn" onclick="setFilter('income')">收入</button>
                         <button class="filter-btn" onclick="setFilter('expense')">支出</button>
-                        <button class="filter-btn" id="hideAmountBtn" onclick="toggleHideAmount()" style="margin-left:auto;">🔒 隱藏金額</button>
+                        <button class="filter-btn" id="hideAmountBtn" onclick="toggleHideAmount()">🔒 隱藏金額</button>
                     </div>
                     <div class="table-wrapper">
                     <table>
