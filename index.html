@@ -255,6 +255,24 @@
             var btn = document.getElementById('hideAmountBtn');
             btn.textContent = amountsHidden ? '🔓 顯示金額' : '🔒 隱藏金額';
             btn.classList.toggle('active', amountsHidden);
+            
+            // 隱藏/顯示儀表板金額
+            var balance = document.getElementById('balance');
+            var totalIncome = document.getElementById('totalIncome');
+            var totalExpense = document.getElementById('totalExpense');
+            if (amountsHidden) {
+                balance.setAttribute('data-original', balance.textContent);
+                totalIncome.setAttribute('data-original', totalIncome.textContent);
+                totalExpense.setAttribute('data-original', totalExpense.textContent);
+                balance.textContent = '****';
+                totalIncome.textContent = '****';
+                totalExpense.textContent = '****';
+            } else {
+                balance.textContent = balance.getAttribute('data-original') || balance.textContent;
+                totalIncome.textContent = totalIncome.getAttribute('data-original') || totalIncome.textContent;
+                totalExpense.textContent = totalExpense.getAttribute('data-original') || totalExpense.textContent;
+            }
+            
             renderTable();
         }
         
