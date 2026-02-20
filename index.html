@@ -188,7 +188,10 @@
         <div id="reportTab" class="hidden">
             <div class="report-card" id="reportContent">
                 <h2>📋 每月收支報表</h2>
-                <div class="export-buttons">
+                <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                    <select id="monthSelect" onchange="renderMonthlyReport()" style="padding: 8px 12px; border-radius: 8px; border: 2px solid #667eea; font-size: 1em;">
+                        <option value="all">全部月份</option>
+                    </select>
                     <button class="btn btn-pdf" onclick="exportPDF()">📄 匯出 PDF</button>
                     <button class="btn btn-image" onclick="exportImage()">🖼️ 匯出圖片</button>
                 </div>
@@ -254,8 +257,31 @@
             event.target.classList.add('active');
             
             if (tab === 'report') {
+                populateMonthSelect();
                 renderMonthlyReport();
             }
+        }
+        
+        // 產生月份選項
+        function populateMonthSelect() {
+            var months = {};
+            transactions.forEach(function(t) {
+                var month = t.date.substring(0, 7);
+                months[month] = true;
+            });
+            
+            var sortedMonths = Object.keys(months).sort().reverse();
+            var select = document.getElementById('monthSelect');
+            var currentValue = select.value;
+            
+            select.innerHTML = '<option value="all">全部月份</option>';
+            sortedMonths.forEach(function(m) {
+                var [year, mon] = m.split('-');
+                var label = year + '年' + parseInt(mon) + '月';
+                select.innerHTML += '<option value="' + m + '">' + label + '</option>';
+            });
+            
+            select.value = currentValue;
         }
         
         // 計算餘額（基於排序後的順序）
@@ -419,7 +445,28 @@
         });
         
         function renderMonthlyReport() {
-            var sorted = transactions.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
+            var selectedMonth = document.getElementById('monthSelect').value;
+            
+            // 過濾選擇的月份
+            var filtered = transactions.filter(function(t) {
+                if (selectedMonth === 'all') return true;
+                return t.date.substring(0, 7) === selectedMonth;
+            });
+            
+            // 計算該月的期初餘額（如果選了月份的話）
+            var beginningBalance = 0;
+            if (selectedMonth !== 'all') {
+                var sortedAll = transactions.slice().sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+                sortedAll.forEach(function(t) {
+                    if (t.date.substring(0, 7) < selectedMonth) {
+                        if (t.type === 'income') beginningBalance += parseInt(t.amount);
+                        else beginningBalance -= parseInt(t.amount);
+                    }
+                });
+            }
+            
+            // 排序（由新到舊）
+            var sorted = filtered.slice().sort(function(a, b) { return new Date(b.date) - new Date(a.date); });
             
             var totalIncome = 0;
             var totalExpense = 0;
@@ -431,12 +478,25 @@
             
             var html = '<div style="padding:10px;">';
             
+            // 標題
+            var title = selectedMonth === 'all' ? '全部月份' : selectedMonth.replace('-', '年') + '月';
+            html += '<div style="background:#667eea;color:white;padding:15px;border-radius:10px;margin-bottom:20px;text-align:center;">';
+            html += '<div style="font-size:1.3em;font-weight:bold;">📋 ' + title + ' 收支報表</div>';
+            html += '</div>';
+            
+            // 總計
             html += '<div style="background:#f0f0f0;padding:15px;border-radius:10px;margin-bottom:20px;">';
-            html += '<div style="font-size:1.1em;font-weight:bold;margin-bottom:10px;">📊 總計</div>';
+            if (selectedMonth !== 'all') {
+                html += '<div>📆 期初餘額：<span style="font-weight:bold;">' + formatMoney(beginningBalance) + '</span></div>';
+            }
             html += '<div>📥 總收入：<span style="color:#11998e;font-weight:bold;">' + formatMoney(totalIncome) + '</span></div>';
             html += '<div>📤 總支出：<span style="color:#f5576c;font-weight:bold;">' + formatMoney(totalExpense) + '</span></div>';
-            html += '<div>💰 餘額：<span style="font-weight:bold;">' + formatMoney(totalIncome - totalExpense) + '</span></div>';
+            html += '<div>💰 期末餘額：<span style="font-weight:bold;">' + formatMoney(beginningBalance + totalIncome - totalExpense) + '</span></div>';
             html += '</div>';
+            
+            if (sorted.length === 0) {
+                html += '<p style="text-align:center;color:#999">尚無資料</p>';
+            }
             
             sorted.forEach(function(t) {
                 var amountPrefix = t.type === 'income' ? '+' : '-';
